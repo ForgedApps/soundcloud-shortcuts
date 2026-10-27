@@ -96,12 +96,12 @@ Accounts (user action)
 
 | Step | Work | Done when |
 |---|---|---|
-| 0 | Create `ForgedApps/soundcloud-shortcuts` (MIT), WXT + TypeScript scaffold, ESLint/Prettier, vitest, GitHub Actions build on PR, release workflow that zips Chrome and Edge builds on tag | CI green on an empty extension |
-| 1 | Phase A: manifest commands, service worker, content script, player adapter with 4 original commands + the extended set, tab-targeting logic, options page v1 | Load unpacked in Chrome and Edge, every command works on soundcloud.com, works while another tab is focused |
+| 0 ✅ | Create `ForgedApps/soundcloud-shortcuts` (MIT), WXT + TypeScript scaffold, ESLint/Prettier, vitest, GitHub Actions build on PR, release workflow that zips Chrome and Edge builds on tag | CI green on an empty extension |
+| 1 ✅ | Phase A: manifest commands, service worker, content script, player adapter with 4 original commands + the extended set, tab-targeting logic, options page v1 | Load unpacked in Chrome and Edge, every command works on soundcloud.com, works while another tab is focused |
 | 2 | Playwright test that loads the built extension against soundcloud.com (unauthenticated play works for public tracks) and asserts play/pause toggles; selector smoke test runs nightly in CI to catch SoundCloud UI changes | Tests pass locally and in CI |
 | 3 | Store listing: icons, screenshots, privacy policy on ForgedApps docs site, listing copy, permission justifications. Submit v1.0 to both stores | Both listings in review |
-| 4 | Phase B part 1: now-playing state pipeline (content script observer → worker → storage), badge, new-track notification with Next/Like buttons, settings | Notification appears on track change in both browsers |
-| 5 | Phase B part 2: popup with artwork/metadata/controls, waveform fetch + cache + canvas render, click/drag seek, hover time, live position updates, SoundCloud-like styling with dark/light | Popup matches the site's mini-player look; seeking lands within ~0.5 s of the clicked position |
+| 4 ✅ | Phase B part 1: now-playing state pipeline (content script observer → worker → storage), badge, new-track notification with Next/Like buttons, settings | Notification appears on track change in both browsers |
+| 5 ✅ | Phase B part 2: popup with artwork/metadata/controls, waveform fetch + cache + canvas render, click/drag seek, hover time, live position updates, SoundCloud-like styling with dark/light | Popup matches the site's mini-player look; seeking lands within ~0.5 s of the clicked position |
 | 6 | Submit v1.1 (or 2.0) with the popup; update screenshots | Approved on both stores |
 
 Rough effort: steps 0–1 are a day; 2–3 a day plus store review wait (Chrome 1–3 days, Edge up to 7 business days); 4–5 two to three days, dominated by waveform data access and matching the visual.

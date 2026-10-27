@@ -17,7 +17,20 @@ describe("normalizeSettings", () => {
         openTabIfNone: true,
         showErrorBadge: false,
       }),
-    ).toEqual({ tabTargeting: "first", seekStep: 5, openTabIfNone: true, showErrorBadge: false });
+    ).toEqual({
+      ...DEFAULT_SETTINGS,
+      tabTargeting: "first",
+      seekStep: 5,
+      openTabIfNone: true,
+      showErrorBadge: false,
+    });
+  });
+
+  it("accepts the notification toggles", () => {
+    expect(
+      normalizeSettings({ notifyOnTrackChange: false, notifyOnlyWhenHidden: false, showStateBadge: false }),
+    ).toMatchObject({ notifyOnTrackChange: false, notifyOnlyWhenHidden: false, showStateBadge: false });
+    expect(normalizeSettings({ notifyOnTrackChange: "yes" }).notifyOnTrackChange).toBe(true);
   });
 
   it("clamps and rounds the seek step", () => {

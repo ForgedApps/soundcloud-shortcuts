@@ -6,18 +6,29 @@
  * to dispatching the keyboard shortcut SoundCloud itself handles on the page.
  */
 import type { Command, CommandResult } from "./messages";
+import { parseTime, type NowPlaying, type RepeatMode } from "./state";
 
 export const SELECTORS = {
+  playControls: [".playControls"],
   play: [".playControls__play", ".playControl"],
   next: [".skipControl__next", ".playControls__next"],
   previous: [".skipControl__previous", ".playControls__prev"],
   like: [".playbackSoundBadge__like", ".playbackSoundBadge .sc-button-like"],
   repost: [".playbackSoundBadge__repost", ".playbackSoundBadge .sc-button-repost"],
   mute: [".volume__button", ".volume .volume__button"],
+  volume: [".volume"],
   shuffle: [".shuffleControl", ".playControls__shuffle"],
   repeat: [".repeatControl", ".playControls__repeat"],
   timeline: [".playbackTimeline__progressWrapper", ".playbackTimeline [role=progressbar]"],
+  timePassed: [".playbackTimeline__timePassed"],
+  timeDuration: [".playbackTimeline__duration"],
   title: [".playbackSoundBadge__titleLink", ".playbackSoundBadge__title a"],
+  artist: [".playbackSoundBadge__lightLink", ".playbackSoundBadge__titleContextContainer a"],
+  artwork: [
+    ".playbackSoundBadge__avatar [style*='background-image']",
+    ".playbackSoundBadge .sc-artwork[style*='background-image']",
+    ".playbackSoundBadge img",
+  ],
 } as const;
 
 type SelectorKey = keyof typeof SELECTORS;
@@ -38,7 +49,7 @@ const KEY_FALLBACK: Partial<Record<Command, KeyboardEventInit>> = {
   repeat: { key: "r", code: "KeyR", keyCode: 82, shiftKey: true },
 };
 
-function find(key: SelectorKey, root: ParentNode = document): HTMLElement | null {
+export function find(key: SelectorKey, root: ParentNode = document): HTMLElement | null {
   for (const selector of SELECTORS[key]) {
     const el = root.querySelector<HTMLElement>(selector);
     if (el) return el;
@@ -81,26 +92,33 @@ export interface TimelineState {
 export function readTimeline(): TimelineState | null {
   const el = find("timeline");
   if (!el) return null;
-  const position = Number(el.getAttribute("aria-valuenow"));
-  const duration = Number(el.getAttribute("aria-valuemax"));
+  let position = Number(el.getAttribute("aria-valuenow"));
+  let duration = Number(el.getAttribute("aria-valuemax"));
+  if (!el.hasAttribute("aria-valuenow") || !Number.isFinite(position)) {
+    position = parseTime(visibleText(find("timePassed"))) ?? Number.NaN;
+  }
+  if (!el.hasAttribute("aria-valuemax") || !Number.isFinite(duration)) {
+    duration = parseTime(visibleText(find("timeDuration"))) ?? Number.NaN;
+  }
   if (!Number.isFinite(position) || !Number.isFinite(duration) || duration <= 0) return null;
   return { position, duration };
 }
 
-/** Seek by simulating a pointer press on the timeline at the target position. */
-function seekBy(deltaSeconds: number, command: Command): CommandResult {
+/** Text of the element with screen-reader-only children ("Current time:") removed. */
+function visibleText(el: HTMLElement | null): string | null {
+  if (!el) return null;
+  const shown = el.querySelector<HTMLElement>("[aria-hidden='true']");
+  return (shown ?? el).textContent?.trim() ?? null;
+}
+
+/** Simulate a pointer press on the timeline at a fraction of its width. */
+export function seekToFraction(fraction: number): CommandResult {
   const el = find("timeline");
-  const state = readTimeline();
-  const fallback = KEY_FALLBACK[command];
-  if (!el || !state) {
-    return fallback ? dispatchKey(fallback) : { ok: false, detail: "timeline not found" };
-  }
+  if (!el) return { ok: false, detail: "timeline not found" };
   const rect = el.getBoundingClientRect();
-  if (rect.width === 0) {
-    return fallback ? dispatchKey(fallback) : { ok: false, detail: "timeline has no width" };
-  }
-  const target = Math.min(state.duration, Math.max(0, state.position + deltaSeconds));
-  const x = rect.left + (target / state.duration) * rect.width;
+  if (rect.width === 0) return { ok: false, detail: "timeline has no width" };
+  const f = Math.min(1, Math.max(0, fraction));
+  const x = rect.left + f * rect.width;
   const y = rect.top + rect.height / 2;
   const init: MouseEventInit = {
     bubbles: true,
@@ -117,6 +135,18 @@ function seekBy(deltaSeconds: number, command: Command): CommandResult {
   return { ok: true };
 }
 
+/** Seek relative to the current position. */
+function seekBy(deltaSeconds: number, command: Command): CommandResult {
+  const state = readTimeline();
+  const fallback = KEY_FALLBACK[command];
+  if (!state) {
+    return fallback ? dispatchKey(fallback) : { ok: false, detail: "timeline not found" };
+  }
+  const result = seekToFraction((state.position + deltaSeconds) / state.duration);
+  if (result.ok || !fallback) return result;
+  return dispatchKey(fallback);
+}
+
 export function isPlaying(): boolean {
   const el = find("play");
   return (
@@ -127,6 +157,77 @@ export function isPlaying(): boolean {
 export function currentTitle(): string | null {
   const el = find("title");
   return el?.getAttribute("title") ?? el?.textContent?.trim() ?? null;
+}
+
+function selected(el: HTMLElement | null): boolean {
+  return (
+    !!el &&
+    (el.classList.contains("sc-button-selected") ||
+      el.getAttribute("aria-pressed") === "true" ||
+      /unlike|un-?repost|remove/i.test(el.getAttribute("title") ?? ""))
+  );
+}
+
+function repeatMode(el: HTMLElement | null): RepeatMode {
+  if (!el) return "none";
+  if (el.classList.contains("m-one")) return "one";
+  if (el.classList.contains("m-all")) return "all";
+  const title = el.getAttribute("title") ?? "";
+  if (/one/i.test(title) && !/repeat$/i.test(title)) return "one";
+  return "none";
+}
+
+function artworkUrl(el: HTMLElement | null): string | null {
+  if (!el) return null;
+  if (el instanceof HTMLImageElement) return el.src || null;
+  const match = /url\(["']?([^"')]+)["']?\)/.exec(el.style.backgroundImage ?? "");
+  return match?.[1] ?? null;
+}
+
+function absolute(href: string | null): string {
+  if (!href) return "";
+  try {
+    return new URL(href, "https://soundcloud.com/").toString();
+  } catch {
+    return "";
+  }
+}
+
+/** Snapshot of the player bar, or null if no track is loaded. */
+export function readNowPlaying(): NowPlaying | null {
+  const titleEl = find("title");
+  const href = titleEl?.getAttribute("href");
+  if (!titleEl || !href) return null;
+  const trackUrl = absolute(href);
+  const trackKey = new URL(trackUrl).pathname;
+  const timeline = readTimeline();
+  const artistEl = find("artist");
+  const volumeEl = find("volume");
+  const level = Number(volumeEl?.getAttribute("data-level"));
+
+  return {
+    trackKey,
+    trackUrl,
+    title: titleEl.getAttribute("title") ?? titleEl.textContent?.trim() ?? "",
+    artist: artistEl?.getAttribute("title") ?? artistEl?.textContent?.trim() ?? "",
+    artistUrl: absolute(artistEl?.getAttribute("href") ?? null),
+    artworkUrl: artworkUrl(find("artwork")),
+    playing: isPlaying(),
+    position: timeline?.position ?? 0,
+    duration: timeline?.duration ?? 0,
+    liked: selected(find("like")),
+    reposted: selected(find("repost")),
+    shuffle: !!find("shuffle")?.classList.contains("m-shuffling"),
+    repeat: repeatMode(find("repeat")),
+    volume: Number.isFinite(level) ? level : null,
+    muted: !!volumeEl?.classList.contains("muted"),
+    updatedAt: Date.now(),
+  };
+}
+
+/** Swap SoundCloud's size suffix on an artwork URL, e.g. t50x50 → t200x200. */
+export function artworkAtSize(url: string, size: number): string {
+  return url.replace(/-(t\d+x\d+|large|small|badge|original|crop)(\.\w+)$/, `-t${size}x${size}$2`);
 }
 
 export function runCommand(command: Command, seekStep: number): CommandResult {

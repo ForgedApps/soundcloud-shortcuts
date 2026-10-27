@@ -12,7 +12,7 @@ export default defineConfig({
     description:
       "Keyboard shortcuts to play, pause, skip, seek, like and control volume on soundcloud.com from any tab. Remap them in your browser's extension shortcut settings.",
     homepage_url: "https://github.com/ForgedApps/soundcloud-shortcuts",
-    permissions: ["scripting", "storage"],
+    permissions: ["scripting", "storage", "notifications"],
     host_permissions: ["https://soundcloud.com/*"],
     minimum_chrome_version: "116",
     action: {

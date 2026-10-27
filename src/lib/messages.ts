@@ -1,3 +1,5 @@
+import type { NowPlaying, Waveform } from "./state";
+
 /** Commands declared in wxt.config.ts `manifest.commands`. Keep in sync. */
 export const COMMANDS = [
   "play-pause",
@@ -24,6 +26,7 @@ export function isCommand(value: string): value is Command {
 /** Commands handled by the service worker alone; everything else goes to the page. */
 export const WORKER_ONLY_COMMANDS: ReadonlySet<Command> = new Set<Command>(["focus-tab"]);
 
+/** Worker → content script: run a command on the player. */
 export interface CommandMessage {
   type: "sc-shortcuts/command";
   command: Command;
@@ -31,11 +34,42 @@ export interface CommandMessage {
   seekStep: number;
 }
 
+/** Worker → content script: jump to a point in the track. */
+export interface SeekToMessage {
+  type: "sc-shortcuts/seek-to";
+  /** 0..1 of the track duration. */
+  fraction: number;
+}
+
+/** Worker → content script: liveness check. */
 export interface PingMessage {
   type: "sc-shortcuts/ping";
 }
 
-export type Message = CommandMessage | PingMessage;
+/** Content script → worker: the player bar changed. `null` means no track loaded. */
+export interface StateMessage {
+  type: "sc-shortcuts/state";
+  state: NowPlaying | null;
+}
+
+/** Content script → worker: waveform samples for a track. */
+export interface WaveformMessage {
+  type: "sc-shortcuts/waveform";
+  waveform: Waveform;
+}
+
+/** Popup → worker: user pressed a control. */
+export type InvokeMessage =
+  | { type: "sc-shortcuts/invoke"; command: Command }
+  | { type: "sc-shortcuts/invoke"; seekTo: number };
+
+export type Message =
+  | CommandMessage
+  | SeekToMessage
+  | PingMessage
+  | StateMessage
+  | WaveformMessage
+  | InvokeMessage;
 
 export interface CommandResult {
   ok: boolean;

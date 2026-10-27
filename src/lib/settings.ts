@@ -9,6 +9,12 @@ export interface Settings {
   seekStep: number;
   /** Briefly show a badge on the toolbar icon when a command fails. */
   showErrorBadge: boolean;
+  /** Show a system notification when a new track starts. */
+  notifyOnTrackChange: boolean;
+  /** Only notify when the SoundCloud tab is not the one being looked at. */
+  notifyOnlyWhenHidden: boolean;
+  /** Show play/pause state on the toolbar icon badge. */
+  showStateBadge: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -16,6 +22,9 @@ export const DEFAULT_SETTINGS: Settings = {
   openTabIfNone: false,
   seekStep: 10,
   showErrorBadge: true,
+  notifyOnTrackChange: true,
+  notifyOnlyWhenHidden: true,
+  showStateBadge: true,
 };
 
 const KEY = "settings";
@@ -29,6 +38,14 @@ export async function saveSettings(settings: Settings): Promise<void> {
   await chrome.storage.sync.set({ [KEY]: normalizeSettings(settings) });
 }
 
+const BOOLEAN_KEYS = [
+  "openTabIfNone",
+  "showErrorBadge",
+  "notifyOnTrackChange",
+  "notifyOnlyWhenHidden",
+  "showStateBadge",
+] as const;
+
 /** Merge stored values over defaults and reject out-of-range values. */
 export function normalizeSettings(raw: unknown): Settings {
   const input = (raw ?? {}) as Partial<Record<keyof Settings, unknown>>;
@@ -41,8 +58,9 @@ export function normalizeSettings(raw: unknown): Settings {
   ) {
     out.tabTargeting = input.tabTargeting;
   }
-  if (typeof input.openTabIfNone === "boolean") out.openTabIfNone = input.openTabIfNone;
-  if (typeof input.showErrorBadge === "boolean") out.showErrorBadge = input.showErrorBadge;
+  for (const key of BOOLEAN_KEYS) {
+    if (typeof input[key] === "boolean") out[key] = input[key] as boolean;
+  }
   if (typeof input.seekStep === "number" && Number.isFinite(input.seekStep)) {
     out.seekStep = Math.min(120, Math.max(1, Math.round(input.seekStep)));
   }

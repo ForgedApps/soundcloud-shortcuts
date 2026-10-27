@@ -97,6 +97,9 @@ kbd {
   color: var(--muted);
   font-style: italic;
 }
+form h2 {
+  margin-top: 24px;
+}
 form label {
   display: flex;
   flex-direction: column;

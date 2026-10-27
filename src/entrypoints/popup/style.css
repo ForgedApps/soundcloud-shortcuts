@@ -1,0 +1,220 @@
+:root {
+  --bg: #ffffff;
+  --fg: #111;
+  --muted: #777;
+  --border: #e5e5e5;
+  --accent: #ff5500;
+  --accent-2: #ff2200;
+  --hover: #ff8c4b;
+  --unplayed: #cfcfcf;
+  --chip: #f2f2f2;
+  --chip-fg: #333;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c1c1c;
+    --fg: #f0f0f0;
+    --muted: #9a9a9a;
+    --border: #2d2d2d;
+    --unplayed: #4a4a4a;
+    --chip: #2a2a2a;
+    --chip-fg: #e6e6e6;
+  }
+}
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  width: 360px;
+  background: var(--bg);
+  color: var(--fg);
+  font: 13px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+[hidden] {
+  display: none !important;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+.empty {
+  padding: 28px 16px;
+  text-align: center;
+  color: var(--muted);
+}
+.empty a {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+#player {
+  padding: 12px 8px 10px;
+}
+header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 4px 10px;
+}
+.artwork img {
+  display: block;
+  width: 56px;
+  height: 56px;
+  border-radius: 4px;
+  background: var(--chip);
+  object-fit: cover;
+}
+.meta {
+  flex: 1;
+  min-width: 0;
+}
+.title,
+.artist {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.title {
+  font-weight: 600;
+  font-size: 14px;
+}
+.title:hover,
+.artist:hover {
+  text-decoration: underline;
+}
+.artist {
+  color: var(--muted);
+}
+.wave {
+  position: relative;
+  padding: 0 4px;
+  cursor: pointer;
+}
+canvas {
+  display: block;
+  width: 344px;
+  height: 64px;
+}
+.hover-time {
+  position: absolute;
+  top: -2px;
+  transform: translateX(-50%);
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: var(--fg);
+  color: var(--bg);
+  font-size: 11px;
+  pointer-events: none;
+}
+.times {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 6px 0;
+  font-size: 11px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.times span:first-child {
+  color: var(--accent);
+}
+.controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0 4px;
+}
+button.icon {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--fg);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+button.icon.small {
+  width: 28px;
+  height: 28px;
+  color: var(--muted);
+}
+button.icon svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+button.icon:hover {
+  background: var(--chip);
+}
+button.icon.play {
+  width: 44px;
+  height: 44px;
+  background: var(--accent);
+  color: #fff;
+}
+button.icon.play svg {
+  width: 18px;
+  height: 18px;
+}
+button.icon.play:hover {
+  background: var(--accent-2);
+}
+button.icon.active {
+  color: var(--accent);
+}
+.repeat-one {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+}
+.actions {
+  display: flex;
+  gap: 6px;
+  padding: 6px 4px 0;
+  border-top: 1px solid var(--border);
+  margin-top: 6px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--chip);
+  color: var(--chip-fg);
+  font: inherit;
+  cursor: pointer;
+}
+.chip svg {
+  width: 13px;
+  height: 13px;
+  fill: currentColor;
+}
+.chip:hover {
+  filter: brightness(0.95);
+}
+.chip.active {
+  color: var(--accent);
+}
+.chip.subtle {
+  margin-left: auto;
+  padding: 5px 8px;
+  color: var(--muted);
+  background: transparent;
+}

@@ -36,6 +36,9 @@ function readForm(form: HTMLFormElement): Settings {
     seekStep: Number(data.get("seekStep")),
     openTabIfNone: data.get("openTabIfNone") === "on",
     showErrorBadge: data.get("showErrorBadge") === "on",
+    notifyOnTrackChange: data.get("notifyOnTrackChange") === "on",
+    notifyOnlyWhenHidden: data.get("notifyOnlyWhenHidden") === "on",
+    showStateBadge: data.get("showStateBadge") === "on",
   };
 }
 
@@ -43,8 +46,14 @@ function writeForm(form: HTMLFormElement, settings: Settings): void {
   (form.elements.namedItem("tabTargeting") as HTMLSelectElement).value = settings.tabTargeting;
   (form.elements.namedItem("seekStep") as HTMLInputElement).value = String(settings.seekStep);
   (form.elements.namedItem("openTabIfNone") as HTMLInputElement).checked = settings.openTabIfNone;
-  (form.elements.namedItem("showErrorBadge") as HTMLInputElement).checked =
-    settings.showErrorBadge;
+  for (const key of [
+    "showErrorBadge",
+    "notifyOnTrackChange",
+    "notifyOnlyWhenHidden",
+    "showStateBadge",
+  ] as const) {
+    (form.elements.namedItem(key) as HTMLInputElement).checked = settings[key];
+  }
 }
 
 async function init(): Promise<void> {

@@ -16,11 +16,16 @@ An independent project by [ForgedApps](https://github.com/ForgedApps). Not affil
 
 Remap or bind any of them at `chrome://extensions/shortcuts` or `edge://extensions/shortcuts`. Browsers allow four default bindings per extension, so the rest start unbound. On macOS use `Option` in place of `Alt`.
 
-Settings (toolbar icon → options): which SoundCloud tab receives commands when several are open, seek step, open soundcloud.com if no tab exists, error badge.
+## Now playing
+
+- The toolbar icon shows play/pause state and opens a panel with artwork, title, artist, transport controls, like, repost, mute, and a SoundCloud-style waveform. Hover it for the time at the cursor; click to seek.
+- When a new track starts, a notification shows the artwork, title and artist with Next and Like buttons. By default it only appears while you are not looking at the SoundCloud tab. Click it to jump to the tab.
+
+Settings (gear in the panel): which SoundCloud tab receives commands when several are open, seek step, open soundcloud.com if no tab exists, error badge, notification and badge toggles.
 
 ## Privacy
 
-No data is collected or sent anywhere. The extension only talks to the soundcloud.com tab in your browser. Permissions: `scripting` (to reach the player if the page loaded before the extension), `storage` (your settings), and access to `https://soundcloud.com/*`.
+No data is collected or sent anywhere. The extension only talks to the soundcloud.com tab in your browser. Waveform peaks and artwork for the current track are fetched from SoundCloud's own CDN by the page, exactly as the site does. Permissions: `scripting` (to reach the player if the page loaded before the extension), `storage` (your settings and the current track), `notifications` (new-track alerts), and access to `https://soundcloud.com/*`.
 
 ## Development
 
@@ -39,9 +44,13 @@ All SoundCloud DOM selectors live in [`src/lib/player-adapter.ts`](src/lib/playe
 
 Icons are generated from `scripts/icon.svg` with `node scripts/make-icons.mjs`.
 
+## How it works
+
+The content script watches SoundCloud's player bar with a `MutationObserver` and reports changes to the service worker, which keeps the current track in session storage, updates the badge, and raises notifications. The popup reads that state and interpolates the playhead between reports. Waveform peaks come from the JSON file SoundCloud itself loads for each track; the URL is read from the track page's embedded metadata.
+
 ## Roadmap
 
-See [PLAN.md](PLAN.md). Next: a now-playing toolbar popup with a seekable waveform and a notification on track change.
+See [PLAN.md](PLAN.md).
 
 ## License
 

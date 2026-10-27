@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Now playing</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div id="empty" class="empty" hidden>
+      <img src="/icon/48.png" alt="" width="40" height="40" />
+      <p>Nothing is playing.</p>
+      <a id="open-sc" href="https://soundcloud.com/" target="_blank" rel="noreferrer">Open SoundCloud</a>
+    </div>
+
+    <div id="player" hidden>
+      <header>
+        <a id="artwork-link" class="artwork" title="Open track" target="_blank" rel="noreferrer">
+          <img id="artwork" alt="" width="56" height="56" />
+        </a>
+        <div class="meta">
+          <a id="title" class="title" target="_blank" rel="noreferrer"></a>
+          <a id="artist" class="artist" target="_blank" rel="noreferrer"></a>
+        </div>
+        <button id="focus" class="icon small" type="button" title="Go to SoundCloud tab" aria-label="Go to SoundCloud tab">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2h8v8h-2V5.4L5.4 12 4 10.6 10.6 4H6V2zM2 4h3v2H4v6h6v-1h2v3H2V4z"/></svg>
+        </button>
+      </header>
+
+      <div class="wave" id="wave">
+        <canvas id="waveform" width="344" height="64"></canvas>
+        <div id="hover-time" class="hover-time" hidden></div>
+      </div>
+      <div class="times">
+        <span id="time-passed">0:00</span>
+        <span id="time-total">0:00</span>
+      </div>
+
+      <div class="controls">
+        <button class="icon" data-command="shuffle" id="shuffle" type="button" title="Shuffle" aria-label="Shuffle">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M11 2l3 2.5L11 7V5h-1.3L4.6 11H1V9h2.7L8.8 3H11V2zM1 3h3.6l1.6 1.9L4.9 6.4 3.7 5H1V3zm8.7 6l1.3-1.5 1.3 1.5H11v2h1.3L11 12.5V14l3-2.5-3-2.5v1H10.1L9.7 9z"/></svg>
+        </button>
+        <button class="icon" data-command="previous" type="button" title="Previous" aria-label="Previous">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2h2v12H3V2zm10 0v12L6 8l7-6z"/></svg>
+        </button>
+        <button class="icon play" data-command="play-pause" id="play" type="button" title="Play" aria-label="Play">
+          <svg id="icon-play" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2l10 6-10 6V2z"/></svg>
+          <svg id="icon-pause" viewBox="0 0 16 16" aria-hidden="true" hidden><path d="M3 2h4v12H3V2zm6 0h4v12H9V2z"/></svg>
+        </button>
+        <button class="icon" data-command="next" type="button" title="Next" aria-label="Next">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M11 2h2v12h-2V2zM3 2l7 6-7 6V2z"/></svg>
+        </button>
+        <button class="icon" data-command="repeat" id="repeat" type="button" title="Repeat" aria-label="Repeat">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 5h7V3l3 2.5L11 8V6H5v3H3V5h1zm8 6H5v2l-3-2.5L5 8v2h6V7h2v4h-1z"/></svg>
+          <span id="repeat-one" class="repeat-one" hidden>1</span>
+        </button>
+      </div>
+
+      <div class="actions">
+        <button class="chip" data-command="like" id="like" type="button">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 14S2 9.9 2 5.9A3.2 3.2 0 0 1 5.2 2.7c1.2 0 2.2.6 2.8 1.5.6-.9 1.6-1.5 2.8-1.5A3.2 3.2 0 0 1 14 5.9C14 9.9 8 14 8 14z"/></svg>
+          <span>Like</span>
+        </button>
+        <button class="chip" data-command="repost" id="repost" type="button">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 5h7V3l3 2.5L11 8V6H5v3H3V5h1zm8 6H5v2l-3-2.5L5 8v2h6V7h2v4h-1z"/></svg>
+          <span>Repost</span>
+        </button>
+        <button class="chip" data-command="mute" id="mute" type="button">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 6h3l4-3v10L5 10H2V6zm9.5-1.5l1-1A6 6 0 0 1 14 8a6 6 0 0 1-1.5 4.5l-1-1A4.5 4.5 0 0 0 12.5 8a4.5 4.5 0 0 0-1-3.5z"/></svg>
+          <span id="volume-label">Volume</span>
+        </button>
+        <a id="settings" class="chip subtle" href="#" title="Settings">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 5a3 3 0 1 0 0 6 3 3 0 0 0 0-6zm6 3l-1.5-.8-.2-1.1 1-1.3-1.4-1.4-1.3 1-1.1-.4L8.8 2H7.2l-.7 1.6-1.1.4-1.3-1L2.7 4.4l1 1.3-.4 1.1L2 8l1.3.7.4 1.1-1 1.3 1.4 1.4 1.3-1 1.1.4.7 1.6h1.6l.7-1.6 1.1-.4 1.3 1 1.4-1.4-1-1.3.4-1.1L14 8z"/></svg>
+        </a>
+      </div>
+    </div>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
