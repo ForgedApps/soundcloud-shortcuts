@@ -1,6 +1,6 @@
 {
   "name": "soundcloud-shortcuts",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "description": "Keyboard shortcuts for soundcloud.com, remappable in your browser's extension shortcut settings.",
   "type": "module",

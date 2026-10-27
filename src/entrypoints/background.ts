@@ -17,6 +17,8 @@ const CONTENT_SCRIPT = "content-scripts/soundcloud.js";
 const NOTIFICATION_ID = "sc-shortcuts/now-playing";
 
 export default defineBackground(() => {
+  console.log(`[sc-shortcuts] service worker started, v${chrome.runtime.getManifest().version}`);
+
   chrome.commands.onCommand.addListener((command) => {
     if (!isCommand(command)) return;
     void handleCommand(command).catch((error) => {
@@ -35,7 +37,10 @@ export default defineBackground(() => {
         return;
       case "sc-shortcuts/test-notification":
         void testNotification()
-          .then(sendResponse)
+          .then((result) => {
+            console.log("[sc-shortcuts] test notification:", result);
+            sendResponse(result);
+          })
           .catch((error) => sendResponse({ ok: false, detail: String(error) }));
         return true;
       case "sc-shortcuts/invoke":
@@ -171,6 +176,20 @@ async function onStateReport(tabId: number, incoming: NowPlaying | null): Promis
   if (current.tabId !== null && current.tabId !== tabId) {
     const currentIsPlaying = current.nowPlaying?.playing ?? false;
     if (!incoming || (currentIsPlaying && !incoming.playing)) return;
+  }
+
+  const prev = current.nowPlaying;
+  if (
+    (prev?.trackKey ?? null) !== (incoming?.trackKey ?? null) ||
+    (prev?.playing ?? null) !== (incoming?.playing ?? null)
+  ) {
+    console.log(
+      "[sc-shortcuts] state:",
+      incoming
+        ? `${incoming.playing ? "playing" : "paused"} "${incoming.title}" (${incoming.trackKey}) from tab ${tabId}`
+        : `no track (tab ${tabId})`,
+      current.notifiedKey ? `| last announced ${current.notifiedKey}` : "",
+    );
   }
 
   const next: StoredState = {
