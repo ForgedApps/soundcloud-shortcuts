@@ -19,6 +19,7 @@ Or locally: `pnpm zip && pnpm zip:edge` (output in `.output/`).
 | `public/icon/128.png` | Chrome store icon (128×128) |
 | `screenshot-1-shortcuts.png` … `screenshot-4-options.png` | Screenshots, 1280×800, both stores |
 | `promo-tile-440x280.png` | Chrome small promo tile |
+| `marquee-1400x560.jpg` | Chrome marquee promo tile |
 
 Screenshots use fictional track names and generated artwork, no third-party material.
 

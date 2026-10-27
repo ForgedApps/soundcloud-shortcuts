@@ -196,6 +196,33 @@ scenes.set(
   </style></head><body><div class="w"><img src="/icon/128.png"><h1>Shortcuts for SoundCloud</h1><p>Keyboard control · now-playing panel · waveform seeking</p></div></body></html>`,
 );
 
+scenes.set(
+  "/marquee.html",
+  `<!doctype html><html><head><meta charset="utf-8"><style>
+  html,body{margin:0;width:1400px;height:560px;overflow:hidden;font-family:"Segoe UI",system-ui,sans-serif;color:#fff;
+    background:radial-gradient(1100px 600px at 15% 20%,#3a2114 0%,#161616 55%,#0d0d0d 100%)}
+  .w{position:relative;width:1400px;height:560px}
+  .text{position:absolute;left:90px;top:120px;max-width:560px}
+  .text img{width:72px;height:72px;border-radius:16px;box-shadow:0 12px 30px rgba(0,0,0,.5)}
+  h1{margin:22px 0 0;font-size:54px;font-weight:700;line-height:1.08;letter-spacing:-.5px}
+  h1 b{color:#ff5500}
+  p{margin:18px 0 0;font-size:21px;line-height:1.45;color:#c9c9c9}
+  .card{position:absolute;left:760px;top:140px;width:340px;height:126px;transform:scale(1.6);transform-origin:top left;
+    border-radius:14px;box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.08);overflow:hidden;background:#1c1c1c}
+  iframe{border:0;display:block}
+  .keys{position:absolute;left:780px;top:395px;display:flex;gap:8px;align-items:center;color:#9a9a9a;font-size:16px}
+  kbd{font:600 15px/1 "Segoe UI",system-ui;padding:8px 10px;border-radius:7px;background:#2c2c2c;border:1px solid #444;border-bottom:3px solid #444;color:#eee}
+  </style></head><body><div class="w">
+    <div class="text">
+      <img src="/icon/128.png">
+      <h1>SoundCloud, <b>from any tab</b></h1>
+      <p>Keyboard shortcuts, a now-playing panel with a seekable waveform, and a heads-up when the next track starts.</p>
+    </div>
+    <div class="card"><iframe src="/popup-preview.html" width="340" height="126"></iframe></div>
+    <div class="keys"><kbd>Alt</kbd><kbd>Shift</kbd><kbd>P</kbd> play / pause &nbsp;·&nbsp; <kbd>Alt</kbd><kbd>Shift</kbd><kbd>.</kbd> next</div>
+  </div></body></html>`,
+);
+
 /* ---------- render ---------- */
 
 const browser = await chromium.launch();
@@ -205,12 +232,14 @@ const shots = [
   ["scene-notify", "screenshot-3-notification.png", 1280, 800],
   ["scene-options", "screenshot-4-options.png", 1280, 800],
   ["promo-tile", "promo-tile-440x280.png", 440, 280],
+  ["marquee", "marquee-1400x560.jpg", 1400, 560],
 ];
 for (const [scene, file, width, height] of shots) {
   const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 1, colorScheme: "dark" });
   await page.goto(`${base}/${scene}.html`, { waitUntil: "networkidle" });
   await page.waitForTimeout(600);
-  await page.screenshot({ path: join(outDir, file), type: "png" });
+  const jpeg = file.endsWith(".jpg");
+  await page.screenshot({ path: join(outDir, file), type: jpeg ? "jpeg" : "png", ...(jpeg ? { quality: 92 } : {}) });
   console.log(`docs/store-assets/${file}`);
   await page.close();
 }
