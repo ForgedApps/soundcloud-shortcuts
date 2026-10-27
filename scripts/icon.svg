@@ -15,6 +15,10 @@
     <rect x="78" y="38" width="8" height="54" rx="4"/>
     <rect x="92" y="62" width="8" height="30" rx="4"/>
   </g>
-  <!-- key cap outline -->
-  <rect x="30" y="98" width="68" height="14" rx="5" fill="none" stroke="#ffffff" stroke-opacity="0.9" stroke-width="4"/>
+  <!-- three dots: shortcut keys -->
+  <g fill="#ffffff" fill-opacity="0.9">
+    <circle cx="46" cy="106" r="4.5"/>
+    <circle cx="64" cy="106" r="4.5"/>
+    <circle cx="82" cy="106" r="4.5"/>
+  </g>
 </svg>
