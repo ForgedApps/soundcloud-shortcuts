@@ -83,7 +83,7 @@ Control and display the soundcloud.com player from the browser toolbar and keybo
 ## Submission checklist
 
 1. Accounts (one-time, one-time, personal jgentes account):
-   - Chrome Web Store developer account: https://chrome.google.com/webstore/devconsole ($5, needs a Google account with 2-step verification; set a publisher name (e.g. "jgentes"), verify the contact email).
+   - Chrome Web Store developer account: https://chrome.google.com/webstore/devconsole ($5, needs a Google account with 2-step verification; set publisher name "James Gentes", verify the contact email).
    - Microsoft Partner Center, Edge Add-ons program: https://partner.microsoft.com/dashboard/microsoftedge (free).
 2. Download the zips from the GitHub release for the tag being published.
 3. Chrome: New item → upload the chrome zip → fill Store listing (text, icon, screenshots, promo tile), Privacy practices (above), Distribution: public, all regions → Submit for review. Review usually takes 1–3 days.

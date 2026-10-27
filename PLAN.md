@@ -1,6 +1,6 @@
 # Shortcuts for SoundCloud — Implementation Plan
 
-Publisher: jgentes · Repo: `jgentes/soundcloud-shortcuts` (GitHub) · Targets: Chrome Web Store + Microsoft Edge Add-ons
+Publisher: James Gentes (jgentes) · Repo: `jgentes/soundcloud-shortcuts` (GitHub) · Targets: Chrome Web Store + Microsoft Edge Add-ons
 
 ## 1. Background and what we learned
 

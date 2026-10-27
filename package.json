@@ -1,8 +1,14 @@
 {
   "name": "soundcloud-shortcuts",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "private": true,
   "description": "Keyboard shortcuts for soundcloud.com, remappable in your browser's extension shortcut settings.",
+  "author": "James Gentes",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jgentes/soundcloud-shortcuts.git"
+  },
   "type": "module",
   "packageManager": "pnpm@10.19.0",
   "scripts": {
