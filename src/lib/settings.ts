@@ -15,6 +15,8 @@ export interface Settings {
   notifyOnlyWhenHidden: boolean;
   /** Show play/pause state on the toolbar icon badge. */
   showStateBadge: boolean;
+  /** Open the now-playing panel itself when a new track starts (opt-in). */
+  openPanelOnTrackChange: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -25,6 +27,7 @@ export const DEFAULT_SETTINGS: Settings = {
   notifyOnTrackChange: true,
   notifyOnlyWhenHidden: false,
   showStateBadge: true,
+  openPanelOnTrackChange: false,
 };
 
 const KEY = "settings";
@@ -44,6 +47,7 @@ const BOOLEAN_KEYS = [
   "notifyOnTrackChange",
   "notifyOnlyWhenHidden",
   "showStateBadge",
+  "openPanelOnTrackChange",
 ] as const;
 
 /** Merge stored values over defaults and reject out-of-range values. */

@@ -223,9 +223,31 @@ async function onStateReport(tabId: number, incoming: NowPlaying | null): Promis
     } else {
       diag(`new track "${incoming.title}" (notifications disabled in settings)`);
     }
+    if (settings.openPanelOnTrackChange) await openPanel();
   } else if (incoming?.artworkData && incoming.trackKey === next.notifiedKey) {
     // Artwork arrived after the notification was shown; refresh its icon.
     await updateNotificationIcon(incoming);
+  }
+}
+
+/**
+ * Open the toolbar popup programmatically. Needs Chrome 127+ (Edge equivalent)
+ * and a focused browser window; otherwise the browser rejects it.
+ */
+async function openPanel(): Promise<void> {
+  const action = chrome.action as typeof chrome.action & {
+    openPopup?: (options?: { windowId?: number }) => Promise<void>;
+  };
+  if (typeof action.openPopup !== "function") {
+    diag("open panel: not supported by this browser");
+    return;
+  }
+  try {
+    const win = await chrome.windows.getLastFocused();
+    await action.openPopup(win.id !== undefined ? { windowId: win.id } : undefined);
+    diag("open panel: opened");
+  } catch (error) {
+    diag(`open panel: ${String(error)}`);
   }
 }
 

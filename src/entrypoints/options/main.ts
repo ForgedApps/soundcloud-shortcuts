@@ -41,6 +41,7 @@ function readForm(form: HTMLFormElement): Settings {
     notifyOnTrackChange: data.get("notifyOnTrackChange") === "on",
     notifyOnlyWhenHidden: data.get("notifyOnlyWhenHidden") === "on",
     showStateBadge: data.get("showStateBadge") === "on",
+    openPanelOnTrackChange: data.get("openPanelOnTrackChange") === "on",
   };
 }
 
@@ -53,6 +54,7 @@ function writeForm(form: HTMLFormElement, settings: Settings): void {
     "notifyOnTrackChange",
     "notifyOnlyWhenHidden",
     "showStateBadge",
+    "openPanelOnTrackChange",
   ] as const) {
     (form.elements.namedItem(key) as HTMLInputElement).checked = settings[key];
   }
