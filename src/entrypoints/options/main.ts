@@ -1,4 +1,6 @@
+import { DIAG_KEY, readDiag } from "@/lib/diag";
 import { loadSettings, saveSettings, type Settings } from "@/lib/settings";
+import { STATE_KEY, loadState } from "@/lib/state";
 
 const isEdge = /\bEdg\//.test(navigator.userAgent);
 const SHORTCUTS_URL = isEdge ? "edge://extensions/shortcuts" : "chrome://extensions/shortcuts";
@@ -90,8 +92,34 @@ async function wireNotificationTest(): Promise<void> {
   });
 }
 
+async function renderDiagnostics(): Promise<void> {
+  const summary = document.querySelector<HTMLElement>("#diag-summary");
+  const log = document.querySelector<HTMLElement>("#diag-log");
+  if (!summary || !log) return;
+  const [state, events] = await Promise.all([loadState(), readDiag()]);
+  const np = state.nowPlaying;
+  summary.textContent =
+    `Version ${chrome.runtime.getManifest().version} · ` +
+    (np
+      ? `${np.playing ? "Playing" : "Paused"}: ${np.title} — ${np.artist} (tab ${state.tabId})`
+      : "No track reported yet") +
+    (state.notifiedKey ? ` · last announced: ${state.notifiedKey}` : " · nothing announced yet") +
+    (state.waveform ? " · waveform loaded" : "");
+  log.textContent = events.length
+    ? events
+        .map((e) => `${new Date(e.at).toLocaleTimeString()}  ${e.text}`)
+        .reverse()
+        .join("
+")
+    : "No events yet. Play something on soundcloud.com, then come back.";
+}
+
 async function init(): Promise<void> {
   void wireNotificationTest();
+  void renderDiagnostics();
+  chrome.storage.session.onChanged.addListener((changes) => {
+    if (changes[DIAG_KEY] || changes[STATE_KEY]) void renderDiagnostics();
+  });
   document.querySelector("#open-shortcuts")?.addEventListener("click", () => {
     void chrome.tabs.create({ url: SHORTCUTS_URL });
   });

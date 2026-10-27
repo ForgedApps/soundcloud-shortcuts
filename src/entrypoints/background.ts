@@ -8,6 +8,7 @@ import {
   type Message,
   type SeekToMessage,
 } from "@/lib/messages";
+import { diag } from "@/lib/diag";
 import { loadSettings, type Settings } from "@/lib/settings";
 import { loadState, saveState, type NowPlaying, type StoredState } from "@/lib/state";
 import { SOUNDCLOUD_URL_PATTERN, pickTargetTab } from "@/lib/tab-picker";
@@ -17,12 +18,12 @@ const CONTENT_SCRIPT = "content-scripts/soundcloud.js";
 const NOTIFICATION_ID = "sc-shortcuts/now-playing";
 
 export default defineBackground(() => {
-  console.log(`[sc-shortcuts] service worker started, v${chrome.runtime.getManifest().version}`);
+  diag(`service worker started, v${chrome.runtime.getManifest().version}`);
 
   chrome.commands.onCommand.addListener((command) => {
     if (!isCommand(command)) return;
     void handleCommand(command).catch((error) => {
-      console.error("[sc-shortcuts] command failed", command, error);
+      diag(`command ${command} failed: ${String(error)}`);
       void flashBadge("!", "#d32f2f");
     });
   });
@@ -38,7 +39,7 @@ export default defineBackground(() => {
       case "sc-shortcuts/test-notification":
         void testNotification()
           .then((result) => {
-            console.log("[sc-shortcuts] test notification:", result);
+            diag(`test notification: ${result.ok ? "ok" : "FAILED"} ${result.detail ?? ""}`);
             sendResponse(result);
           })
           .catch((error) => sendResponse({ ok: false, detail: String(error) }));
@@ -107,7 +108,7 @@ async function handleCommand(command: Command): Promise<void> {
     seekStep: settings.seekStep,
   });
   if (!result?.ok) {
-    console.warn("[sc-shortcuts]", command, result?.detail);
+    diag(`command ${command}: ${result?.detail ?? "no response"}`);
     if (settings.showErrorBadge) await flashBadge("!", "#d32f2f");
   }
 }
@@ -120,7 +121,7 @@ async function injectIntoOpenTabs(): Promise<void> {
       try {
         await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: [CONTENT_SCRIPT] });
       } catch (error) {
-        console.warn("[sc-shortcuts] could not inject into tab", tab.id, error);
+        diag(`could not inject into tab ${tab.id}: ${String(error)}`);
       }
     }),
   );
@@ -183,12 +184,12 @@ async function onStateReport(tabId: number, incoming: NowPlaying | null): Promis
     (prev?.trackKey ?? null) !== (incoming?.trackKey ?? null) ||
     (prev?.playing ?? null) !== (incoming?.playing ?? null)
   ) {
-    console.log(
-      "[sc-shortcuts] state:",
-      incoming
-        ? `${incoming.playing ? "playing" : "paused"} "${incoming.title}" (${incoming.trackKey}) from tab ${tabId}`
-        : `no track (tab ${tabId})`,
-      current.notifiedKey ? `| last announced ${current.notifiedKey}` : "",
+    diag(
+      `state: ${
+        incoming
+          ? `${incoming.playing ? "playing" : "paused"} "${incoming.title}" (${incoming.trackKey}) from tab ${tabId}`
+          : `no track (tab ${tabId})`
+      }${current.notifiedKey ? ` | last announced ${current.notifiedKey}` : ""}`,
     );
   }
 
@@ -214,12 +215,13 @@ async function onStateReport(tabId: number, incoming: NowPlaying | null): Promis
   if (isNewTrack && incoming) {
     if (settings.notifyOnTrackChange) {
       const result = await notifyTrack(tabId, incoming, settings);
-      console.info(
-        `[sc-shortcuts] new track "${incoming.title}" → notification:`,
-        result.ok ? (result.detail ?? "shown") : `FAILED: ${result.detail}`,
+      diag(
+        `new track "${incoming.title}" → notification: ${
+          result.ok ? (result.detail ?? "shown") : `FAILED: ${result.detail}`
+        }`,
       );
     } else {
-      console.info(`[sc-shortcuts] new track "${incoming.title}" (notifications disabled)`);
+      diag(`new track "${incoming.title}" (notifications disabled in settings)`);
     }
   } else if (incoming?.artworkData && incoming.trackKey === next.notifiedKey) {
     // Artwork arrived after the notification was shown; refresh its icon.
