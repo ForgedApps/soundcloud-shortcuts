@@ -38,21 +38,22 @@
         </p>
       </section>
 
-      <section>
-        <h2>Behavior</h2>
-        <form id="settings">
-          <label>
-            <span>When several SoundCloud tabs are open, send commands to</span>
-            <select name="tabTargeting">
+      <form id="settings">
+        <section>
+          <h2>Shortcut behavior</h2>
+          <div class="field">
+            <label for="tabTargeting">When several SoundCloud tabs are open, send commands to</label>
+            <select id="tabTargeting" name="tabTargeting">
               <option value="audible-first">the tab that is playing, else the most recent</option>
               <option value="active-first">the current tab if it is SoundCloud, else the playing one</option>
               <option value="first">the first SoundCloud tab</option>
             </select>
-          </label>
-          <label>
-            <span>Seek step (seconds)</span>
-            <input name="seekStep" type="number" min="1" max="120" step="1" />
-          </label>
+          </div>
+          <div class="field inline">
+            <label for="seekStep">Seek step</label>
+            <input id="seekStep" name="seekStep" type="number" min="1" max="120" step="1" />
+            <span class="muted">seconds</span>
+          </div>
           <label class="check">
             <input name="openTabIfNone" type="checkbox" />
             <span>Open soundcloud.com when a shortcut is pressed and no SoundCloud tab exists</span>
@@ -61,35 +62,47 @@
             <input name="showErrorBadge" type="checkbox" />
             <span>Flash a badge on the toolbar icon when a command could not be delivered</span>
           </label>
+        </section>
+
+        <section>
           <h2>Now playing</h2>
-          <label class="check">
-            <input name="notifyOnTrackChange" type="checkbox" />
-            <span>Show a notification when a new track starts (with Next and Like buttons)</span>
-          </label>
-          <label class="check">
-            <input name="notifyOnlyWhenHidden" type="checkbox" />
-            <span>Skip the notification while the SoundCloud tab is the one you are looking at</span>
-          </label>
-          <label class="check">
-            <input name="openPanelOnTrackChange" type="checkbox" />
-            <span>Open the now-playing panel automatically when a new track starts (does not depend on system notifications; needs a recent browser)</span>
-          </label>
-          <label>
-            <span>Close the automatically opened panel after (seconds, 0 keeps it open)</span>
-            <input name="panelAutoCloseSeconds" type="number" min="0" max="60" step="1" />
-          </label>
+          <p class="muted">Click the toolbar icon any time for the now-playing panel with a seekable waveform.</p>
+
           <label class="check">
             <input name="showStateBadge" type="checkbox" />
             <span>Show play / pause state on the toolbar icon</span>
           </label>
-          <p class="muted">
-            Click the toolbar icon for the now-playing panel with a seekable waveform.
-            <button id="test-notification" type="button">Send test notification</button>
-          </p>
-          <p id="notification-status" class="muted" role="status"></p>
+
+          <div class="group">
+            <label class="check">
+              <input name="notifyOnTrackChange" type="checkbox" />
+              <span>Show a system notification when a new track starts <span class="muted">(with Next and Like buttons)</span></span>
+            </label>
+            <div class="sub" data-depends="notifyOnTrackChange">
+              <label class="check">
+                <input name="notifyOnlyWhenHidden" type="checkbox" />
+                <span>Skip it while the SoundCloud tab is the one you are looking at</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="group">
+            <label class="check">
+              <input name="openPanelOnTrackChange" type="checkbox" />
+              <span>Open the now-playing panel when a new track starts <span class="muted">(does not rely on system notifications)</span></span>
+            </label>
+            <div class="sub" data-depends="openPanelOnTrackChange">
+              <div class="field inline">
+                <label for="panelAutoCloseSeconds">Close it again after</label>
+                <input id="panelAutoCloseSeconds" name="panelAutoCloseSeconds" type="number" min="0" max="60" step="1" />
+                <span class="muted">seconds, 0 keeps it open until you dismiss it</span>
+              </div>
+            </div>
+          </div>
+
           <p id="status" class="muted" role="status"></p>
-        </form>
-      </section>
+        </section>
+      </form>
 
       <footer class="muted">
         <a href="https://github.com/ForgedApps/soundcloud-shortcuts" target="_blank" rel="noreferrer">Source on GitHub</a>

@@ -3,6 +3,15 @@ import { loadSettings, saveSettings, type Settings } from "@/lib/settings";
 const isEdge = /\bEdg\//.test(navigator.userAgent);
 const SHORTCUTS_URL = isEdge ? "edge://extensions/shortcuts" : "chrome://extensions/shortcuts";
 
+const BOOLEAN_KEYS = [
+  "openTabIfNone",
+  "showErrorBadge",
+  "showStateBadge",
+  "notifyOnTrackChange",
+  "notifyOnlyWhenHidden",
+  "openPanelOnTrackChange",
+] as const;
+
 async function renderCommands(): Promise<void> {
   const tbody = document.querySelector<HTMLTableSectionElement>("#commands tbody");
   if (!tbody) return;
@@ -29,75 +38,45 @@ async function renderCommands(): Promise<void> {
   );
 }
 
+function input(form: HTMLFormElement, name: string): HTMLInputElement {
+  return form.elements.namedItem(name) as HTMLInputElement;
+}
+
+/** Read every control directly (FormData skips disabled inputs). */
 function readForm(form: HTMLFormElement): Settings {
-  const data = new FormData(form);
+  const flags = Object.fromEntries(BOOLEAN_KEYS.map((k) => [k, input(form, k).checked])) as Pick<
+    Settings,
+    (typeof BOOLEAN_KEYS)[number]
+  >;
   return {
-    tabTargeting: String(data.get("tabTargeting")) as Settings["tabTargeting"],
-    seekStep: Number(data.get("seekStep")),
-    panelAutoCloseSeconds: Number(data.get("panelAutoCloseSeconds")),
-    openTabIfNone: data.get("openTabIfNone") === "on",
-    showErrorBadge: data.get("showErrorBadge") === "on",
-    notifyOnTrackChange: data.get("notifyOnTrackChange") === "on",
-    notifyOnlyWhenHidden: data.get("notifyOnlyWhenHidden") === "on",
-    showStateBadge: data.get("showStateBadge") === "on",
-    openPanelOnTrackChange: data.get("openPanelOnTrackChange") === "on",
+    ...flags,
+    tabTargeting: (form.elements.namedItem("tabTargeting") as HTMLSelectElement)
+      .value as Settings["tabTargeting"],
+    seekStep: Number(input(form, "seekStep").value),
+    panelAutoCloseSeconds: Number(input(form, "panelAutoCloseSeconds").value),
   };
 }
 
 function writeForm(form: HTMLFormElement, settings: Settings): void {
   (form.elements.namedItem("tabTargeting") as HTMLSelectElement).value = settings.tabTargeting;
-  (form.elements.namedItem("seekStep") as HTMLInputElement).value = String(settings.seekStep);
-  (form.elements.namedItem("panelAutoCloseSeconds") as HTMLInputElement).value = String(
-    settings.panelAutoCloseSeconds,
-  );
-  (form.elements.namedItem("openTabIfNone") as HTMLInputElement).checked = settings.openTabIfNone;
-  for (const key of [
-    "showErrorBadge",
-    "notifyOnTrackChange",
-    "notifyOnlyWhenHidden",
-    "showStateBadge",
-    "openPanelOnTrackChange",
-  ] as const) {
-    (form.elements.namedItem(key) as HTMLInputElement).checked = settings[key];
+  input(form, "seekStep").value = String(settings.seekStep);
+  input(form, "panelAutoCloseSeconds").value = String(settings.panelAutoCloseSeconds);
+  for (const key of BOOLEAN_KEYS) input(form, key).checked = settings[key];
+  syncDependents(form);
+}
+
+/** Grey out sub-settings whose parent checkbox (data-depends) is unchecked. */
+function syncDependents(form: HTMLFormElement): void {
+  for (const sub of form.querySelectorAll<HTMLElement>("[data-depends]")) {
+    const enabled = input(form, sub.dataset.depends ?? "").checked;
+    sub.classList.toggle("disabled", !enabled);
+    for (const el of sub.querySelectorAll<HTMLInputElement | HTMLSelectElement>("input, select")) {
+      el.disabled = !enabled;
+    }
   }
 }
 
-const isWindows = /Windows/.test(navigator.userAgent);
-
-async function wireNotificationTest(): Promise<void> {
-  const button = document.querySelector<HTMLButtonElement>("#test-notification");
-  const status = document.querySelector<HTMLElement>("#notification-status");
-  if (!button || !status) return;
-
-  const showLevel = async () => {
-    const level = await new Promise<string>((resolve) =>
-      chrome.notifications.getPermissionLevel((l) => resolve(String(l))),
-    );
-    status.textContent =
-      level === "granted"
-        ? ""
-        : `Notifications are blocked for this browser (permission: ${level}).` +
-          (isWindows ? " Check Windows Settings → System → Notifications and Focus assist." : "");
-  };
-  await showLevel();
-
-  button.addEventListener("click", async () => {
-    status.textContent = "Sending…";
-    const result = (await chrome.runtime
-      .sendMessage({ type: "sc-shortcuts/test-notification" })
-      .catch((e: unknown) => ({ ok: false, detail: String(e) }))) as {
-      ok: boolean;
-      detail?: string;
-    };
-    status.textContent = result.ok
-      ? "Sent. If nothing appeared, the browser or OS is hiding notifications" +
-        (isWindows ? " (Windows Settings → System → Notifications, and Focus assist)." : ".")
-      : `Could not show a notification: ${result.detail ?? "unknown error"}`;
-  });
-}
-
 async function init(): Promise<void> {
-  void wireNotificationTest();
   document.querySelector("#open-shortcuts")?.addEventListener("click", () => {
     void chrome.tabs.create({ url: SHORTCUTS_URL });
   });

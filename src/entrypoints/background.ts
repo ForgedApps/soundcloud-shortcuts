@@ -39,11 +39,6 @@ export default defineBackground(() => {
       case "sc-shortcuts/waveform":
         if (sender.tab?.id !== undefined) void onWaveform(sender.tab.id, message.waveform);
         return;
-      case "sc-shortcuts/test-notification":
-        void testNotification()
-          .then(sendResponse)
-          .catch((error) => sendResponse({ ok: false, detail: String(error) }));
-        return true;
       case "sc-shortcuts/invoke":
         void ("command" in message ? handleCommand(message.command) : seekTo(message.seekTo))
           .then(() => sendResponse({ ok: true }))
@@ -269,6 +264,16 @@ async function notifyTrack(
   return result;
 }
 
+async function updateNotificationIcon(state: NowPlaying): Promise<void> {
+  if (!state.artworkData) return;
+  await new Promise<void>((resolve) => {
+    chrome.notifications.update(NOTIFICATION_ID, { iconUrl: state.artworkData }, () => {
+      void chrome.runtime.lastError;
+      resolve();
+    });
+  });
+}
+
 /** Create (replacing any previous) and report errors instead of swallowing them. */
 function createNotification(
   options: chrome.notifications.NotificationCreateOptions,
@@ -282,35 +287,6 @@ function createNotification(
         else if (!id) resolve({ ok: false, detail: "browser returned no notification id" });
         else resolve({ ok: true });
       });
-    });
-  });
-}
-
-/** Used by the options page to check that notifications can appear at all. */
-async function testNotification(): Promise<CommandResult> {
-  const level = await new Promise<string>((resolve) =>
-    chrome.notifications.getPermissionLevel((l) => resolve(String(l))),
-  );
-  if (level !== "granted") {
-    return { ok: false, detail: `browser reports notification permission "${level}"` };
-  }
-  const result = await createNotification({
-    type: "basic",
-    iconUrl: chrome.runtime.getURL("icon/128.png"),
-    title: "Test track",
-    message: "Shortcuts for SoundCloud",
-    contextMessage: "If you can see this, track notifications will work",
-    buttons: [{ title: "Next" }, { title: "Like" }],
-  });
-  return result.ok ? { ok: true, detail: "notification created" } : result;
-}
-
-async function updateNotificationIcon(state: NowPlaying): Promise<void> {
-  if (!state.artworkData) return;
-  await new Promise<void>((resolve) => {
-    chrome.notifications.update(NOTIFICATION_ID, { iconUrl: state.artworkData }, () => {
-      void chrome.runtime.lastError;
-      resolve();
     });
   });
 }

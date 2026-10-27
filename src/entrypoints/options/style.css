@@ -42,7 +42,7 @@ h1 {
 }
 h2 {
   font-size: 15px;
-  margin: 28px 0 8px;
+  margin: 28px 0 10px;
   padding-bottom: 6px;
   border-bottom: 1px solid var(--border);
 }
@@ -97,22 +97,32 @@ kbd {
   color: var(--muted);
   font-style: italic;
 }
-form h2 {
-  margin-top: 24px;
-}
-form label {
+
+/* ---- form ---- */
+.field {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  margin: 14px 0;
+  margin: 12px 0;
 }
-form label.check {
+.field.inline {
   flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+.field.inline input[type="number"] {
+  width: 72px;
+}
+label.check {
+  display: flex;
   align-items: flex-start;
   gap: 10px;
+  margin: 10px 0;
+  cursor: pointer;
 }
-form label.check input {
-  margin-top: 4px;
+label.check input {
+  margin: 4px 0 0;
+  flex: 0 0 auto;
 }
 select,
 input[type="number"] {
@@ -124,10 +134,30 @@ input[type="number"] {
   color: var(--fg);
   max-width: 420px;
 }
+.group {
+  margin: 10px 0;
+}
+.group > label.check {
+  margin-bottom: 4px;
+}
+.sub {
+  margin: 0 0 6px 26px;
+  padding-left: 12px;
+  border-left: 2px solid var(--border);
+}
+.sub label.check,
+.sub .field {
+  margin: 6px 0;
+}
+.sub.disabled {
+  opacity: 0.5;
+}
+.sub.disabled label.check {
+  cursor: default;
+}
 footer {
   margin-top: 40px;
 }
 footer a {
   color: inherit;
 }
-
