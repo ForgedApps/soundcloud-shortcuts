@@ -4,6 +4,7 @@
   "private": true,
   "description": "Keyboard shortcuts for soundcloud.com, remappable in your browser's extension shortcut settings.",
   "type": "module",
+  "packageManager": "pnpm@10.19.0",
   "scripts": {
     "dev": "wxt",
     "dev:edge": "wxt -b edge",
