@@ -24,7 +24,7 @@ canvas.height = Math.round(cssHeight * dpr);
 ctx.scale(dpr, dpr);
 const bars = Math.floor((cssWidth + GAP) / (BAR_WIDTH + GAP));
 
-let state: StoredState = { nowPlaying: null, tabId: null, waveform: null };
+let state: StoredState = { nowPlaying: null, tabId: null, waveforms: {} };
 let peaks: number[] = [];
 let hover: number | null = null;
 let raf = 0;
@@ -111,8 +111,9 @@ function tick(): void {
 
 function applyState(next: StoredState): void {
   state = next;
-  if (next.waveform) {
-    peaks = downsample(next.waveform.samples, next.waveform.height, bars);
+  const waveform = next.nowPlaying ? next.waveforms?.[next.nowPlaying.trackKey] : undefined;
+  if (waveform) {
+    peaks = downsample(waveform.samples, waveform.height, bars);
   } else {
     // No peaks yet: draw a flat bar so the progress position is still visible.
     peaks = new Array<number>(bars).fill(0.12);
@@ -208,7 +209,7 @@ async function init(): Promise<void> {
       applyState({
         nowPlaying: null,
         tabId: null,
-        waveform: null,
+        waveforms: {},
         ...(change.newValue as Partial<StoredState> | undefined),
       });
     }

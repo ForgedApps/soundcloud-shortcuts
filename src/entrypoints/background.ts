@@ -12,9 +12,11 @@ import { loadSettings, type Settings } from "@/lib/settings";
 import {
   AUTO_OPEN_KEY,
   loadState,
+  rememberWaveform,
   saveState,
   type NowPlaying,
   type StoredState,
+  type Waveform,
 } from "@/lib/state";
 import { SOUNDCLOUD_URL_PATTERN, pickTargetTab } from "@/lib/tab-picker";
 
@@ -51,7 +53,7 @@ export default defineBackground(() => {
     void (async () => {
       const state = await loadState();
       if (state.tabId === tabId) {
-        await saveState({ ...state, nowPlaying: null, tabId: null, waveform: null });
+        await saveState({ ...state, nowPlaying: null, tabId: null });
         await setStateBadge(null);
       }
     })();
@@ -177,8 +179,7 @@ async function onStateReport(tabId: number, incoming: NowPlaying | null): Promis
   const next: StoredState = {
     nowPlaying: incoming,
     tabId: incoming ? tabId : null,
-    waveform:
-      incoming && current.waveform?.trackKey === incoming.trackKey ? current.waveform : null,
+    waveforms: current.waveforms ?? {},
     notifiedKey: current.notifiedKey ?? null,
   };
 
@@ -226,22 +227,23 @@ async function openPanel(settings: Settings): Promise<void> {
   }
 }
 
-async function onWaveform(tabId: number, waveform: StoredState["waveform"]): Promise<void> {
+async function onWaveform(_tabId: number, waveform: Waveform): Promise<void> {
+  // Keyed by track, so ordering against state reports does not matter.
   const current = await loadState();
-  if (current.tabId !== tabId || !waveform) return;
-  if (current.nowPlaying?.trackKey !== waveform.trackKey) return;
-  await saveState({ ...current, waveform });
+  await saveState({ ...current, waveforms: rememberWaveform(current.waveforms ?? {}, waveform) });
 }
 
+/** Swap the toolbar icon for a variant with a small play/pause mark in the corner. */
 async function setStateBadge(state: NowPlaying | null): Promise<void> {
-  if (!state) {
-    await chrome.action.setBadgeText({ text: "" });
-    await chrome.action.setTitle({ title: "Shortcuts for SoundCloud" });
-    return;
-  }
-  await chrome.action.setBadgeBackgroundColor({ color: state.playing ? "#ff5500" : "#777777" });
-  await chrome.action.setBadgeText({ text: state.playing ? "▶" : "❚❚" });
-  await chrome.action.setTitle({ title: `${state.title} — ${state.artist}` });
+  const variant = state ? (state.playing ? "playing" : "paused") : "";
+  const suffix = variant ? `-${variant}` : "";
+  await chrome.action.setIcon({
+    path: { 16: `icon/16${suffix}.png`, 32: `icon/32${suffix}.png`, 48: `icon/48${suffix}.png` },
+  });
+  await chrome.action.setBadgeText({ text: "" });
+  await chrome.action.setTitle({
+    title: state ? `${state.title} — ${state.artist}` : "Shortcuts for SoundCloud",
+  });
 }
 
 async function notifyTrack(

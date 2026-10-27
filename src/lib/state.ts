@@ -40,7 +40,8 @@ export interface StoredState {
   nowPlaying: NowPlaying | null;
   /** Tab that reported `nowPlaying`. */
   tabId: number | null;
-  waveform: Waveform | null;
+  /** Waveforms by trackKey, most recent last. Kept so returning to a track redraws instantly. */
+  waveforms: Record<string, Waveform>;
   /** Track the last notification was shown for, so a track is announced once. */
   notifiedKey?: string | null;
 }
@@ -55,7 +56,20 @@ export interface AutoOpen {
   closeAfter: number;
 }
 
-export const EMPTY_STATE: StoredState = { nowPlaying: null, tabId: null, waveform: null };
+export const EMPTY_STATE: StoredState = { nowPlaying: null, tabId: null, waveforms: {} };
+
+/** How many waveforms the worker keeps in session storage. */
+export const MAX_CACHED_WAVEFORMS = 20;
+
+/** Add a waveform, dropping the oldest entries past the cap. */
+export function rememberWaveform(
+  waveforms: Record<string, Waveform>,
+  waveform: Waveform,
+): Record<string, Waveform> {
+  const entries = Object.entries(waveforms).filter(([key]) => key !== waveform.trackKey);
+  entries.push([waveform.trackKey, waveform]);
+  return Object.fromEntries(entries.slice(-MAX_CACHED_WAVEFORMS));
+}
 
 export async function loadState(): Promise<StoredState> {
   const stored = await chrome.storage.session.get(STATE_KEY);

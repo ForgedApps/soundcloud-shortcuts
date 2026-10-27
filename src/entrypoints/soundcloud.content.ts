@@ -7,7 +7,7 @@ import {
   runCommand,
   seekToFraction,
 } from "@/lib/player-adapter";
-import type { NowPlaying } from "@/lib/state";
+import type { NowPlaying, Waveform } from "@/lib/state";
 import { extractWaveformUrl, isWaveformJson } from "@/lib/waveform";
 
 export default defineContentScript({
@@ -65,7 +65,7 @@ function shutdown(): void {
 let lastSent: string | null = null;
 let lastTrackKey: string | null = null;
 const artworkCache = new Map<string, string>();
-const waveformSent = new Set<string>();
+const waveformCache = new Map<string, Waveform>();
 
 function watchPlayer(): void {
   const controls = find("playControls");
@@ -170,7 +170,12 @@ async function loadArtwork(state: NowPlaying): Promise<void> {
 }
 
 async function loadWaveform(state: NowPlaying): Promise<void> {
-  if (waveformSent.has(state.trackKey)) return;
+  const cached = waveformCache.get(state.trackKey);
+  if (cached) {
+    // The worker may have evicted it (or restarted); resend every time the track comes back.
+    send({ type: "sc-shortcuts/waveform", waveform: cached });
+    return;
+  }
   try {
     const page = await fetch(state.trackUrl, { credentials: "omit" });
     if (!page.ok) return;
@@ -180,11 +185,9 @@ async function loadWaveform(state: NowPlaying): Promise<void> {
     if (!response.ok) return;
     const json: unknown = await response.json();
     if (!isWaveformJson(json)) return;
-    waveformSent.add(state.trackKey);
-    send({
-      type: "sc-shortcuts/waveform",
-      waveform: { trackKey: state.trackKey, samples: json.samples, height: json.height },
-    });
+    const waveform: Waveform = { trackKey: state.trackKey, samples: json.samples, height: json.height };
+    waveformCache.set(state.trackKey, waveform);
+    send({ type: "sc-shortcuts/waveform", waveform });
   } catch {
     /* the popup falls back to a plain progress bar */
   }

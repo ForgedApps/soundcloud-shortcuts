@@ -18,8 +18,8 @@ Remap or bind any of them at `chrome://extensions/shortcuts` or `edge://extensio
 
 ## Now playing
 
-- The toolbar icon shows play/pause state and opens a panel with artwork, title, artist, transport controls, like, repost, mute, and a SoundCloud-style waveform. Hover it for the time at the cursor; click to seek.
-- When a new track starts, a notification shows the artwork, title and artist with Next and Like buttons. By default it only appears while you are not looking at the SoundCloud tab. Click it to jump to the tab.
+- The toolbar icon shows a small play/pause mark and opens a panel with artwork, title, artist, transport controls, like, repost, mute, and a SoundCloud-style waveform. Hover it for the time at the cursor; click to seek.
+- When a new track starts, the panel opens by itself for a few seconds, and a system notification shows the artwork, title and artist with Next and Like buttons. Both can be turned off, and the notification can be limited to when you are not looking at the SoundCloud tab.
 
 Settings (gear in the panel): which SoundCloud tab receives commands when several are open, seek step, open soundcloud.com if no tab exists, error badge, notification and badge toggles.
 

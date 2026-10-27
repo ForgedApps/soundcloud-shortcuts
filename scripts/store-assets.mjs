@@ -50,7 +50,7 @@ const track = {
 };
 
 const stub = (settings = {}) => `<script>
-const state = ${JSON.stringify({ nowPlaying: track, tabId: 1, waveform: { trackKey: track.trackKey, samples, height: 140 } })};
+const state = ${JSON.stringify({ nowPlaying: track, tabId: 1, waveforms: { [track.trackKey]: { trackKey: track.trackKey, samples, height: 140 } } })};
 state.nowPlaying.updatedAt = Date.now();
 window.chrome = {
   storage: {
