@@ -43,6 +43,25 @@ function safely(fn: () => CommandResult): CommandResult {
 
 /* ---------------- now-playing reporting ---------------- */
 
+let observer: MutationObserver | null = null;
+let poll: ReturnType<typeof setInterval> | null = null;
+
+/** After an extension reload this copy is orphaned; stop it so it goes quiet. */
+function isOrphaned(): boolean {
+  try {
+    return !chrome.runtime?.id;
+  } catch {
+    return true;
+  }
+}
+
+function shutdown(): void {
+  observer?.disconnect();
+  observer = null;
+  if (poll) clearInterval(poll);
+  poll = null;
+}
+
 let lastSent: string | null = null;
 let lastTrackKey: string | null = null;
 const artworkCache = new Map<string, string>();
@@ -55,7 +74,7 @@ function watchPlayer(): void {
     setTimeout(watchPlayer, 1000);
     return;
   }
-  const observer = new MutationObserver(scheduleReport);
+  observer = new MutationObserver(scheduleReport);
   observer.observe(controls, {
     subtree: true,
     childList: true,
@@ -64,7 +83,7 @@ function watchPlayer(): void {
   });
   // Some updates (e.g. after a page navigation inside the SPA) arrive without
   // a mutation we can see, so poll slowly as a safety net.
-  setInterval(scheduleReport, 2000);
+  poll = setInterval(scheduleReport, 2000);
   scheduleReport();
 }
 
@@ -78,6 +97,10 @@ function scheduleReport(): void {
 }
 
 function report(): void {
+  if (isOrphaned()) {
+    shutdown();
+    return;
+  }
   const state = readNowPlaying();
   if (state) {
     const cached = artworkCache.get(state.trackKey);

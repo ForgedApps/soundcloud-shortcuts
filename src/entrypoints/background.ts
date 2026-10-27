@@ -69,6 +69,9 @@ export default defineBackground(() => {
 
   chrome.runtime.onInstalled.addListener((details) => {
     if (details.reason === "install") void chrome.runtime.openOptionsPage();
+    // Tabs that were already open keep an orphaned copy of the old content
+    // script, so inject the new one to resume now-playing reports.
+    void injectIntoOpenTabs();
   });
 });
 
@@ -102,6 +105,20 @@ async function handleCommand(command: Command): Promise<void> {
     console.warn("[sc-shortcuts]", command, result?.detail);
     if (settings.showErrorBadge) await flashBadge("!", "#d32f2f");
   }
+}
+
+async function injectIntoOpenTabs(): Promise<void> {
+  const tabs = await chrome.tabs.query({ url: SOUNDCLOUD_URL_PATTERN });
+  await Promise.all(
+    tabs.map(async (tab) => {
+      if (tab.id === undefined) return;
+      try {
+        await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: [CONTENT_SCRIPT] });
+      } catch (error) {
+        console.warn("[sc-shortcuts] could not inject into tab", tab.id, error);
+      }
+    }),
+  );
 }
 
 async function seekTo(fraction: number): Promise<void> {
