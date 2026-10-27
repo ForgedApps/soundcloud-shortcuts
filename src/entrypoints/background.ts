@@ -175,8 +175,16 @@ async function onStateReport(tabId: number, incoming: NowPlaying | null): Promis
   await saveState(next);
 
   if (settings.showStateBadge) await setStateBadge(incoming);
-  if (isNewTrack && settings.notifyOnTrackChange && incoming) {
-    await notifyTrack(tabId, incoming, settings);
+  if (isNewTrack && incoming) {
+    if (settings.notifyOnTrackChange) {
+      const result = await notifyTrack(tabId, incoming, settings);
+      console.info(
+        `[sc-shortcuts] new track "${incoming.title}" → notification:`,
+        result.ok ? (result.detail ?? "shown") : `FAILED: ${result.detail}`,
+      );
+    } else {
+      console.info(`[sc-shortcuts] new track "${incoming.title}" (notifications disabled)`);
+    }
   } else if (incoming?.artworkData && incoming.trackKey === next.notifiedKey) {
     // Artwork arrived after the notification was shown; refresh its icon.
     await updateNotificationIcon(incoming);
@@ -218,7 +226,6 @@ async function notifyTrack(
     buttons: [{ title: "Next" }, { title: state.liked ? "Unlike" : "Like" }],
     silent: true,
   });
-  if (!result.ok) console.warn("[sc-shortcuts] notification failed:", result.detail);
   return result;
 }
 
