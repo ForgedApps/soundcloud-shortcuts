@@ -10,7 +10,7 @@ export default defineConfig({
     name: "Shortcuts for SoundCloud",
     short_name: "SC Shortcuts",
     description:
-      "Keyboard shortcuts to play, pause, skip, seek, like and control volume on soundcloud.com from any tab. Remap them in your browser's extension shortcut settings.",
+      "Keyboard shortcuts for SoundCloud from any tab, plus a now-playing panel with a seekable waveform and track notifications.",
     homepage_url: "https://github.com/jgentes/soundcloud-shortcuts",
     permissions: ["scripting", "storage", "notifications"],
     host_permissions: ["https://soundcloud.com/*"],
