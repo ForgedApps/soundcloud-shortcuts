@@ -41,6 +41,8 @@ export interface StoredState {
   /** Tab that reported `nowPlaying`. */
   tabId: number | null;
   waveform: Waveform | null;
+  /** Track the last notification was shown for, so a track is announced once. */
+  notifiedKey?: string | null;
 }
 
 export const STATE_KEY = "state";

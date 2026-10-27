@@ -45,7 +45,7 @@ export default defineBackground(() => {
     void (async () => {
       const state = await loadState();
       if (state.tabId === tabId) {
-        await saveState({ nowPlaying: null, tabId: null, waveform: null });
+        await saveState({ ...state, nowPlaying: null, tabId: null, waveform: null });
         await setStateBadge(null);
       }
     })();
@@ -151,21 +151,28 @@ async function onStateReport(tabId: number, incoming: NowPlaying | null): Promis
     if (!incoming || (currentIsPlaying && !incoming.playing)) return;
   }
 
-  const previousKey = current.tabId === tabId ? current.nowPlaying?.trackKey : undefined;
-  const trackChanged = !!incoming && incoming.trackKey !== previousKey;
   const next: StoredState = {
     nowPlaying: incoming,
     tabId: incoming ? tabId : null,
     waveform:
       incoming && current.waveform?.trackKey === incoming.trackKey ? current.waveform : null,
+    notifiedKey: current.notifiedKey ?? null,
   };
-  await saveState(next);
 
   const settings = await loadSettings();
+  // A new track is announced once it is actually playing. SoundCloud often
+  // reports the new track in a paused/loading state first, so compare against
+  // the last announced track rather than the previous report.
+  const isNewTrack = !!incoming && incoming.playing && incoming.trackKey !== next.notifiedKey;
+  if (isNewTrack && settings.notifyOnTrackChange) {
+    next.notifiedKey = incoming.trackKey;
+  }
+  await saveState(next);
+
   if (settings.showStateBadge) await setStateBadge(incoming);
-  if (trackChanged && incoming?.playing && settings.notifyOnTrackChange) {
+  if (isNewTrack && settings.notifyOnTrackChange && incoming) {
     await notifyTrack(tabId, incoming, settings);
-  } else if (incoming && incoming.artworkData && current.nowPlaying?.trackKey === incoming.trackKey) {
+  } else if (incoming?.artworkData && incoming.trackKey === next.notifiedKey) {
     // Artwork arrived after the notification was shown; refresh its icon.
     await updateNotificationIcon(incoming);
   }
@@ -189,12 +196,8 @@ async function setStateBadge(state: NowPlaying | null): Promise<void> {
   await chrome.action.setTitle({ title: `${state.title} — ${state.artist}` });
 }
 
-let lastNotifiedKey: string | null = null;
-
 async function notifyTrack(tabId: number, state: NowPlaying, settings: Settings): Promise<void> {
-  if (lastNotifiedKey === state.trackKey) return;
   if (settings.notifyOnlyWhenHidden && (await tabIsBeingViewed(tabId))) return;
-  lastNotifiedKey = state.trackKey;
   await new Promise<void>((resolve) => {
     chrome.notifications.create(
       NOTIFICATION_ID,
@@ -216,7 +219,7 @@ async function notifyTrack(tabId: number, state: NowPlaying, settings: Settings)
 }
 
 async function updateNotificationIcon(state: NowPlaying): Promise<void> {
-  if (lastNotifiedKey !== state.trackKey || !state.artworkData) return;
+  if (!state.artworkData) return;
   await new Promise<void>((resolve) => {
     chrome.notifications.update(NOTIFICATION_ID, { iconUrl: state.artworkData }, () => {
       void chrome.runtime.lastError;

@@ -9,8 +9,8 @@ const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as 
 const canvas = $<HTMLCanvasElement>("waveform");
 const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 const dpr = window.devicePixelRatio || 1;
-const cssWidth = canvas.width;
-const cssHeight = canvas.height;
+const cssWidth = canvas.getBoundingClientRect().width || canvas.width;
+const cssHeight = canvas.getBoundingClientRect().height || canvas.height;
 canvas.width = Math.round(cssWidth * dpr);
 canvas.height = Math.round(cssHeight * dpr);
 ctx.scale(dpr, dpr);
@@ -66,19 +66,22 @@ function render(): void {
   $("shuffle").classList.toggle("active", np.shuffle);
   $("repeat").classList.toggle("active", np.repeat !== "none");
   $("repeat-one").hidden = np.repeat !== "one";
-  $("like").classList.toggle("active", np.liked);
-  $("like").querySelector("span")!.textContent = np.liked ? "Liked" : "Like";
-  $("repost").classList.toggle("active", np.reposted);
-  $("repost").querySelector("span")!.textContent = np.reposted ? "Reposted" : "Repost";
-  $("mute").classList.toggle("active", np.muted);
-  $("volume-label").textContent = np.muted
-    ? "Muted"
-    : np.volume === null
-      ? "Mute"
-      : `Vol ${np.volume * 10}%`;
+  setToggle("like", np.liked, np.liked ? "Unlike" : "Like");
+  setToggle("repost", np.reposted, np.reposted ? "Remove repost" : "Repost");
+  const volume = np.volume === null ? "" : ` (${np.volume * 10}%)`;
+  setToggle("mute", np.muted, np.muted ? "Unmute" : `Mute${volume}`);
+  $("icon-vol").toggleAttribute("hidden", np.muted);
+  $("icon-muted").toggleAttribute("hidden", !np.muted);
 
   $("time-total").textContent = formatTime(np.duration);
   tick();
+}
+
+function setToggle(id: string, active: boolean, label: string): void {
+  const el = $(id);
+  el.classList.toggle("active", active);
+  el.title = label;
+  el.setAttribute("aria-label", label);
 }
 
 function tick(): void {
@@ -130,10 +133,7 @@ function wireControls(): void {
   }
 
   $("focus").addEventListener("click", () => invoke({ type: "sc-shortcuts/invoke", command: "focus-tab" }));
-  $("settings").addEventListener("click", (e) => {
-    e.preventDefault();
-    void chrome.runtime.openOptionsPage();
-  });
+  $("settings").addEventListener("click", () => void chrome.runtime.openOptionsPage());
   for (const link of document.querySelectorAll<HTMLAnchorElement>("a[target=_blank]")) {
     link.addEventListener("click", (e) => {
       // Open as a real tab rather than the popup's own navigation.

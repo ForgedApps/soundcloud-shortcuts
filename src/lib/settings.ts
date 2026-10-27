@@ -23,7 +23,7 @@ export const DEFAULT_SETTINGS: Settings = {
   seekStep: 10,
   showErrorBadge: true,
   notifyOnTrackChange: true,
-  notifyOnlyWhenHidden: true,
+  notifyOnlyWhenHidden: false,
   showStateBadge: true,
 };
 
