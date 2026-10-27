@@ -34,7 +34,7 @@ Control and display the soundcloud.com player from the browser toolbar and keybo
 ## Data usage disclosure
 Does not collect or transmit any user data.
 
-## Privacy policy (host at forgedapps.github.io/docs/soundcloud-shortcuts/privacy)
+## Privacy policy (host at forgedapps.com/soundcloud-shortcuts/privacy)
 Shortcuts for SoundCloud does not collect, store, or transmit any personal data. All functionality runs locally in your browser. Settings are stored using the browser's extension storage and, if you are signed in to your browser, synced by the browser between your devices. The extension makes no network requests of its own. Contact: via GitHub issues at https://github.com/ForgedApps/soundcloud-shortcuts.
 
 ## Assets needed
