@@ -1,0 +1,76 @@
+import { loadSettings, saveSettings, type Settings } from "@/lib/settings";
+
+const isEdge = /\bEdg\//.test(navigator.userAgent);
+const SHORTCUTS_URL = isEdge ? "edge://extensions/shortcuts" : "chrome://extensions/shortcuts";
+
+async function renderCommands(): Promise<void> {
+  const tbody = document.querySelector<HTMLTableSectionElement>("#commands tbody");
+  if (!tbody) return;
+  const commands = await chrome.commands.getAll();
+  tbody.replaceChildren(
+    ...commands
+      .filter((c) => c.name && c.name !== "_execute_action")
+      .map((c) => {
+        const tr = document.createElement("tr");
+        const action = document.createElement("td");
+        action.textContent = c.description ?? c.name ?? "";
+        const key = document.createElement("td");
+        if (c.shortcut) {
+          const kbd = document.createElement("kbd");
+          kbd.textContent = c.shortcut;
+          key.append(kbd);
+        } else {
+          key.textContent = "not set";
+          key.className = "unbound";
+        }
+        tr.append(action, key);
+        return tr;
+      }),
+  );
+}
+
+function readForm(form: HTMLFormElement): Settings {
+  const data = new FormData(form);
+  return {
+    tabTargeting: String(data.get("tabTargeting")) as Settings["tabTargeting"],
+    seekStep: Number(data.get("seekStep")),
+    openTabIfNone: data.get("openTabIfNone") === "on",
+    showErrorBadge: data.get("showErrorBadge") === "on",
+  };
+}
+
+function writeForm(form: HTMLFormElement, settings: Settings): void {
+  (form.elements.namedItem("tabTargeting") as HTMLSelectElement).value = settings.tabTargeting;
+  (form.elements.namedItem("seekStep") as HTMLInputElement).value = String(settings.seekStep);
+  (form.elements.namedItem("openTabIfNone") as HTMLInputElement).checked = settings.openTabIfNone;
+  (form.elements.namedItem("showErrorBadge") as HTMLInputElement).checked =
+    settings.showErrorBadge;
+}
+
+async function init(): Promise<void> {
+  document.querySelector("#open-shortcuts")?.addEventListener("click", () => {
+    void chrome.tabs.create({ url: SHORTCUTS_URL });
+  });
+
+  const form = document.querySelector<HTMLFormElement>("#settings");
+  const status = document.querySelector<HTMLElement>("#status");
+  if (form) {
+    writeForm(form, await loadSettings());
+    form.addEventListener("change", async () => {
+      await saveSettings(readForm(form));
+      writeForm(form, await loadSettings());
+      if (status) {
+        status.textContent = "Saved";
+        setTimeout(() => (status.textContent = ""), 1200);
+      }
+    });
+  }
+
+  await renderCommands();
+  // Refresh bindings when the user comes back from the shortcut settings page.
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") void renderCommands();
+  });
+}
+
+void init();

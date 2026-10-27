@@ -1,0 +1,26 @@
+{
+  "name": "soundcloud-shortcuts",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Keyboard shortcuts for soundcloud.com, remappable in your browser's extension shortcut settings.",
+  "type": "module",
+  "scripts": {
+    "dev": "wxt",
+    "dev:edge": "wxt -b edge",
+    "build": "wxt build",
+    "build:edge": "wxt build -b edge",
+    "zip": "wxt zip",
+    "zip:edge": "wxt zip -b edge",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "postinstall": "wxt prepare"
+  },
+  "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
+    "@types/chrome": "^0.3.6",
+    "happy-dom": "^21.0.4",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.0",
+    "wxt": "^0.21.5"
+  }
+}

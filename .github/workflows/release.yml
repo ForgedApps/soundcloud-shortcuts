@@ -1,0 +1,31 @@
+name: Release
+
+# Tag a commit `vX.Y.Z` (matching package.json) to build store-ready zips
+# and attach them to a GitHub release. Store upload stays a manual step
+# until the Chrome Web Store and Partner Center accounts exist.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm zip
+      - run: pnpm zip:edge
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: .output/*.zip
+          generate_release_notes: true

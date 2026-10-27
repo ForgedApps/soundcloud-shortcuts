@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shortcuts for SoundCloud</title>
+    <meta name="manifest.open_in_tab" content="true" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <img src="/icon/128.png" alt="" width="48" height="48" />
+        <div>
+          <h1>Shortcuts for SoundCloud</h1>
+          <p class="muted">Independent project, not affiliated with SoundCloud.</p>
+        </div>
+      </header>
+
+      <section>
+        <h2>Keyboard shortcuts</h2>
+        <p>
+          Shortcuts are managed by your browser so they work from any tab.
+          <button id="open-shortcuts" type="button">Open shortcut settings</button>
+        </p>
+        <table id="commands">
+          <thead>
+            <tr>
+              <th>Action</th>
+              <th>Shortcut</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <p class="muted">
+          Browsers allow four default shortcuts per extension. Unbound actions can be assigned on the
+          shortcut settings page.
+        </p>
+      </section>
+
+      <section>
+        <h2>Behavior</h2>
+        <form id="settings">
+          <label>
+            <span>When several SoundCloud tabs are open, send commands to</span>
+            <select name="tabTargeting">
+              <option value="audible-first">the tab that is playing, else the most recent</option>
+              <option value="active-first">the current tab if it is SoundCloud, else the playing one</option>
+              <option value="first">the first SoundCloud tab</option>
+            </select>
+          </label>
+          <label>
+            <span>Seek step (seconds)</span>
+            <input name="seekStep" type="number" min="1" max="120" step="1" />
+          </label>
+          <label class="check">
+            <input name="openTabIfNone" type="checkbox" />
+            <span>Open soundcloud.com when a shortcut is pressed and no SoundCloud tab exists</span>
+          </label>
+          <label class="check">
+            <input name="showErrorBadge" type="checkbox" />
+            <span>Flash a badge on the toolbar icon when a command could not be delivered</span>
+          </label>
+          <p id="status" class="muted" role="status"></p>
+        </form>
+      </section>
+
+      <footer class="muted">
+        <a href="https://github.com/ForgedApps/soundcloud-shortcuts" target="_blank" rel="noreferrer">Source on GitHub</a>
+        · <a href="https://github.com/ForgedApps/soundcloud-shortcuts/issues" target="_blank" rel="noreferrer">Report a problem</a>
+        · <a href="https://forgedapps.github.io/docs/soundcloud-shortcuts/privacy" target="_blank" rel="noreferrer">Privacy</a>
+      </footer>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
