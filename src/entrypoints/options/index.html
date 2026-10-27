@@ -74,6 +74,10 @@
             <input name="openPanelOnTrackChange" type="checkbox" />
             <span>Open the now-playing panel automatically when a new track starts (does not depend on system notifications; needs a recent browser)</span>
           </label>
+          <label>
+            <span>Close the automatically opened panel after (seconds, 0 keeps it open)</span>
+            <input name="panelAutoCloseSeconds" type="number" min="0" max="60" step="1" />
+          </label>
           <label class="check">
             <input name="showStateBadge" type="checkbox" />
             <span>Show play / pause state on the toolbar icon</span>
@@ -85,12 +89,6 @@
           <p id="notification-status" class="muted" role="status"></p>
           <p id="status" class="muted" role="status"></p>
         </form>
-      </section>
-
-      <section>
-        <h2>Diagnostics</h2>
-        <p class="muted" id="diag-summary"></p>
-        <pre id="diag-log" class="log"></pre>
       </section>
 
       <footer class="muted">

@@ -1,5 +1,13 @@
 import type { Command, InvokeMessage } from "@/lib/messages";
-import { STATE_KEY, formatTime, loadState, type NowPlaying, type StoredState } from "@/lib/state";
+import {
+  AUTO_OPEN_KEY,
+  STATE_KEY,
+  formatTime,
+  loadState,
+  type AutoOpen,
+  type NowPlaying,
+  type StoredState,
+} from "@/lib/state";
 import { downsample, drawWaveform, type WaveformColors } from "@/lib/waveform";
 
 const BAR_WIDTH = 2;
@@ -173,8 +181,26 @@ function wireControls(): void {
   });
 }
 
+/**
+ * When the worker opened this popup automatically, close it again after the
+ * configured delay unless the user moves the mouse into it.
+ */
+async function armAutoClose(): Promise<void> {
+  const stored = await chrome.storage.session.get(AUTO_OPEN_KEY);
+  const auto = stored[AUTO_OPEN_KEY] as AutoOpen | undefined;
+  if (!auto) return;
+  await chrome.storage.session.remove(AUTO_OPEN_KEY);
+  if (Date.now() - auto.at > 5000 || auto.closeAfter <= 0) return;
+  const timer = setTimeout(() => window.close(), auto.closeAfter * 1000);
+  const cancel = () => clearTimeout(timer);
+  document.addEventListener("mouseenter", cancel, { once: true });
+  document.addEventListener("mousemove", cancel, { once: true });
+  document.addEventListener("keydown", cancel, { once: true });
+}
+
 async function init(): Promise<void> {
   wireControls();
+  void armAutoClose();
   applyState(await loadState());
   chrome.storage.session.onChanged.addListener((changes) => {
     const change = changes[STATE_KEY];

@@ -47,6 +47,14 @@ export interface StoredState {
 
 export const STATE_KEY = "state";
 
+/** Set by the worker right before it opens the popup automatically. */
+export const AUTO_OPEN_KEY = "autoOpen";
+export interface AutoOpen {
+  at: number;
+  /** Seconds until the popup closes itself; 0 keeps it open. */
+  closeAfter: number;
+}
+
 export const EMPTY_STATE: StoredState = { nowPlaying: null, tabId: null, waveform: null };
 
 export async function loadState(): Promise<StoredState> {

@@ -8,9 +8,14 @@ import {
   type Message,
   type SeekToMessage,
 } from "@/lib/messages";
-import { diag } from "@/lib/diag";
 import { loadSettings, type Settings } from "@/lib/settings";
-import { loadState, saveState, type NowPlaying, type StoredState } from "@/lib/state";
+import {
+  AUTO_OPEN_KEY,
+  loadState,
+  saveState,
+  type NowPlaying,
+  type StoredState,
+} from "@/lib/state";
 import { SOUNDCLOUD_URL_PATTERN, pickTargetTab } from "@/lib/tab-picker";
 
 const SOUNDCLOUD_HOME = "https://soundcloud.com/";
@@ -18,12 +23,10 @@ const CONTENT_SCRIPT = "content-scripts/soundcloud.js";
 const NOTIFICATION_ID = "sc-shortcuts/now-playing";
 
 export default defineBackground(() => {
-  diag(`service worker started, v${chrome.runtime.getManifest().version}`);
-
   chrome.commands.onCommand.addListener((command) => {
     if (!isCommand(command)) return;
     void handleCommand(command).catch((error) => {
-      diag(`command ${command} failed: ${String(error)}`);
+      console.error("[sc-shortcuts] command failed", command, error);
       void flashBadge("!", "#d32f2f");
     });
   });
@@ -38,10 +41,7 @@ export default defineBackground(() => {
         return;
       case "sc-shortcuts/test-notification":
         void testNotification()
-          .then((result) => {
-            diag(`test notification: ${result.ok ? "ok" : "FAILED"} ${result.detail ?? ""}`);
-            sendResponse(result);
-          })
+          .then(sendResponse)
           .catch((error) => sendResponse({ ok: false, detail: String(error) }));
         return true;
       case "sc-shortcuts/invoke":
@@ -108,7 +108,7 @@ async function handleCommand(command: Command): Promise<void> {
     seekStep: settings.seekStep,
   });
   if (!result?.ok) {
-    diag(`command ${command}: ${result?.detail ?? "no response"}`);
+    console.warn("[sc-shortcuts]", command, result?.detail);
     if (settings.showErrorBadge) await flashBadge("!", "#d32f2f");
   }
 }
@@ -121,7 +121,7 @@ async function injectIntoOpenTabs(): Promise<void> {
       try {
         await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: [CONTENT_SCRIPT] });
       } catch (error) {
-        diag(`could not inject into tab ${tab.id}: ${String(error)}`);
+        console.warn("[sc-shortcuts] could not inject into tab", tab.id, error);
       }
     }),
   );
@@ -179,20 +179,6 @@ async function onStateReport(tabId: number, incoming: NowPlaying | null): Promis
     if (!incoming || (currentIsPlaying && !incoming.playing)) return;
   }
 
-  const prev = current.nowPlaying;
-  if (
-    (prev?.trackKey ?? null) !== (incoming?.trackKey ?? null) ||
-    (prev?.playing ?? null) !== (incoming?.playing ?? null)
-  ) {
-    diag(
-      `state: ${
-        incoming
-          ? `${incoming.playing ? "playing" : "paused"} "${incoming.title}" (${incoming.trackKey}) from tab ${tabId}`
-          : `no track (tab ${tabId})`
-      }${current.notifiedKey ? ` | last announced ${current.notifiedKey}` : ""}`,
-    );
-  }
-
   const next: StoredState = {
     nowPlaying: incoming,
     tabId: incoming ? tabId : null,
@@ -215,15 +201,9 @@ async function onStateReport(tabId: number, incoming: NowPlaying | null): Promis
   if (isNewTrack && incoming) {
     if (settings.notifyOnTrackChange) {
       const result = await notifyTrack(tabId, incoming, settings);
-      diag(
-        `new track "${incoming.title}" → notification: ${
-          result.ok ? (result.detail ?? "shown") : `FAILED: ${result.detail}`
-        }`,
-      );
-    } else {
-      diag(`new track "${incoming.title}" (notifications disabled in settings)`);
+      if (!result.ok) console.warn("[sc-shortcuts] notification failed:", result.detail);
     }
-    if (settings.openPanelOnTrackChange) await openPanel();
+    if (settings.openPanelOnTrackChange) await openPanel(settings);
   } else if (incoming?.artworkData && incoming.trackKey === next.notifiedKey) {
     // Artwork arrived after the notification was shown; refresh its icon.
     await updateNotificationIcon(incoming);
@@ -234,20 +214,20 @@ async function onStateReport(tabId: number, incoming: NowPlaying | null): Promis
  * Open the toolbar popup programmatically. Needs Chrome 127+ (Edge equivalent)
  * and a focused browser window; otherwise the browser rejects it.
  */
-async function openPanel(): Promise<void> {
+async function openPanel(settings: Settings): Promise<void> {
   const action = chrome.action as typeof chrome.action & {
     openPopup?: (options?: { windowId?: number }) => Promise<void>;
   };
-  if (typeof action.openPopup !== "function") {
-    diag("open panel: not supported by this browser");
-    return;
-  }
+  if (typeof action.openPopup !== "function") return;
   try {
     const win = await chrome.windows.getLastFocused();
+    // Tell the popup it was opened automatically so it can close itself.
+    await chrome.storage.session.set({
+      [AUTO_OPEN_KEY]: { at: Date.now(), closeAfter: settings.panelAutoCloseSeconds },
+    });
     await action.openPopup(win.id !== undefined ? { windowId: win.id } : undefined);
-    diag("open panel: opened");
   } catch (error) {
-    diag(`open panel: ${String(error)}`);
+    console.warn("[sc-shortcuts] could not open panel:", error);
   }
 }
 

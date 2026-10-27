@@ -17,6 +17,8 @@ export interface Settings {
   showStateBadge: boolean;
   /** Open the now-playing panel itself when a new track starts (opt-in). */
   openPanelOnTrackChange: boolean;
+  /** Seconds before an automatically opened panel closes itself; 0 keeps it open. */
+  panelAutoCloseSeconds: number;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -28,6 +30,7 @@ export const DEFAULT_SETTINGS: Settings = {
   notifyOnlyWhenHidden: false,
   showStateBadge: true,
   openPanelOnTrackChange: false,
+  panelAutoCloseSeconds: 5,
 };
 
 const KEY = "settings";
@@ -67,6 +70,12 @@ export function normalizeSettings(raw: unknown): Settings {
   }
   if (typeof input.seekStep === "number" && Number.isFinite(input.seekStep)) {
     out.seekStep = Math.min(120, Math.max(1, Math.round(input.seekStep)));
+  }
+  if (
+    typeof input.panelAutoCloseSeconds === "number" &&
+    Number.isFinite(input.panelAutoCloseSeconds)
+  ) {
+    out.panelAutoCloseSeconds = Math.min(60, Math.max(0, Math.round(input.panelAutoCloseSeconds)));
   }
   return out;
 }

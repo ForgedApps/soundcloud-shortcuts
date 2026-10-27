@@ -33,6 +33,13 @@ describe("normalizeSettings", () => {
     expect(normalizeSettings({ notifyOnTrackChange: "yes" }).notifyOnTrackChange).toBe(true);
   });
 
+  it("clamps the panel auto-close delay, allowing 0", () => {
+    expect(normalizeSettings({ panelAutoCloseSeconds: 0 }).panelAutoCloseSeconds).toBe(0);
+    expect(normalizeSettings({ panelAutoCloseSeconds: -3 }).panelAutoCloseSeconds).toBe(0);
+    expect(normalizeSettings({ panelAutoCloseSeconds: 500 }).panelAutoCloseSeconds).toBe(60);
+    expect(normalizeSettings({}).panelAutoCloseSeconds).toBe(5);
+  });
+
   it("clamps and rounds the seek step", () => {
     expect(normalizeSettings({ seekStep: 0 }).seekStep).toBe(1);
     expect(normalizeSettings({ seekStep: 999 }).seekStep).toBe(120);

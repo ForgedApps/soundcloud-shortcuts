@@ -1,6 +1,4 @@
-import { DIAG_KEY, readDiag } from "@/lib/diag";
 import { loadSettings, saveSettings, type Settings } from "@/lib/settings";
-import { STATE_KEY, loadState } from "@/lib/state";
 
 const isEdge = /\bEdg\//.test(navigator.userAgent);
 const SHORTCUTS_URL = isEdge ? "edge://extensions/shortcuts" : "chrome://extensions/shortcuts";
@@ -36,6 +34,7 @@ function readForm(form: HTMLFormElement): Settings {
   return {
     tabTargeting: String(data.get("tabTargeting")) as Settings["tabTargeting"],
     seekStep: Number(data.get("seekStep")),
+    panelAutoCloseSeconds: Number(data.get("panelAutoCloseSeconds")),
     openTabIfNone: data.get("openTabIfNone") === "on",
     showErrorBadge: data.get("showErrorBadge") === "on",
     notifyOnTrackChange: data.get("notifyOnTrackChange") === "on",
@@ -48,6 +47,9 @@ function readForm(form: HTMLFormElement): Settings {
 function writeForm(form: HTMLFormElement, settings: Settings): void {
   (form.elements.namedItem("tabTargeting") as HTMLSelectElement).value = settings.tabTargeting;
   (form.elements.namedItem("seekStep") as HTMLInputElement).value = String(settings.seekStep);
+  (form.elements.namedItem("panelAutoCloseSeconds") as HTMLInputElement).value = String(
+    settings.panelAutoCloseSeconds,
+  );
   (form.elements.namedItem("openTabIfNone") as HTMLInputElement).checked = settings.openTabIfNone;
   for (const key of [
     "showErrorBadge",
@@ -94,33 +96,8 @@ async function wireNotificationTest(): Promise<void> {
   });
 }
 
-async function renderDiagnostics(): Promise<void> {
-  const summary = document.querySelector<HTMLElement>("#diag-summary");
-  const log = document.querySelector<HTMLElement>("#diag-log");
-  if (!summary || !log) return;
-  const [state, events] = await Promise.all([loadState(), readDiag()]);
-  const np = state.nowPlaying;
-  summary.textContent =
-    `Version ${chrome.runtime.getManifest().version} · ` +
-    (np
-      ? `${np.playing ? "Playing" : "Paused"}: ${np.title} — ${np.artist} (tab ${state.tabId})`
-      : "No track reported yet") +
-    (state.notifiedKey ? ` · last announced: ${state.notifiedKey}` : " · nothing announced yet") +
-    (state.waveform ? " · waveform loaded" : "");
-  log.textContent = events.length
-    ? events
-        .map((e) => `${new Date(e.at).toLocaleTimeString()}  ${e.text}`)
-        .reverse()
-        .join("\n")
-    : "No events yet. Play something on soundcloud.com, then come back.";
-}
-
 async function init(): Promise<void> {
   void wireNotificationTest();
-  void renderDiagnostics();
-  chrome.storage.session.onChanged.addListener((changes) => {
-    if (changes[DIAG_KEY] || changes[STATE_KEY]) void renderDiagnostics();
-  });
   document.querySelector("#open-shortcuts")?.addEventListener("click", () => {
     void chrome.tabs.create({ url: SHORTCUTS_URL });
   });
