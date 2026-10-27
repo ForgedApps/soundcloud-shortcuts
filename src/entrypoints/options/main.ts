@@ -109,8 +109,7 @@ async function renderDiagnostics(): Promise<void> {
     ? events
         .map((e) => `${new Date(e.at).toLocaleTimeString()}  ${e.text}`)
         .reverse()
-        .join("
-")
+        .join("\n")
     : "No events yet. Play something on soundcloud.com, then come back.";
 }
 
