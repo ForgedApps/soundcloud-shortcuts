@@ -7,7 +7,7 @@ Only the latest release published to the Chrome Web Store and Microsoft Edge Add
 ## Reporting a vulnerability
 
 Please use GitHub's private vulnerability reporting for this repository:
-https://github.com/ForgedApps/soundcloud-shortcuts/security/advisories/new
+https://github.com/jgentes/soundcloud-shortcuts/security/advisories/new
 
 Do not open a public issue for security problems. You can expect an acknowledgement within a few days.
 

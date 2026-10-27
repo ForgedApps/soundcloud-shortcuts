@@ -42,7 +42,7 @@ Click the toolbar icon for a panel with artwork, title, artist, play/pause, prev
 When several SoundCloud tabs are open, the one that is playing gets the command.
 
 PRIVACY
-No data collection, no accounts, no analytics, no servers. The extension only talks to the soundcloud.com tab in your browser. Open source (MIT): https://github.com/ForgedApps/soundcloud-shortcuts
+No data collection, no accounts, no analytics, no servers. The extension only talks to the soundcloud.com tab in your browser. Open source (MIT): https://github.com/jgentes/soundcloud-shortcuts
 
 Independent project, not affiliated with or endorsed by SoundCloud.
 
@@ -53,9 +53,9 @@ Chrome: Productivity → Tools. Edge: Productivity.
 English
 
 ### Links
-- Homepage / support: https://github.com/ForgedApps/soundcloud-shortcuts
-- Support (issues): https://github.com/ForgedApps/soundcloud-shortcuts/issues
-- Privacy policy: https://forgedapps.com/soundcloud-shortcuts/privacy
+- Homepage / support: https://github.com/jgentes/soundcloud-shortcuts
+- Support (issues): https://github.com/jgentes/soundcloud-shortcuts/issues
+- Privacy policy: https://github.com/jgentes/soundcloud-shortcuts/blob/main/PRIVACY.md
 
 ## Chrome Web Store: Privacy practices tab
 
@@ -74,16 +74,16 @@ Control and display the soundcloud.com player from the browser toolbar and keybo
 
 ## Edge Partner Center: Properties
 
-- Privacy policy URL: https://forgedapps.com/soundcloud-shortcuts/privacy
-- Website: https://github.com/ForgedApps/soundcloud-shortcuts
-- Support contact: https://github.com/ForgedApps/soundcloud-shortcuts/issues
+- Privacy policy URL: https://github.com/jgentes/soundcloud-shortcuts/blob/main/PRIVACY.md
+- Website: https://github.com/jgentes/soundcloud-shortcuts
+- Support contact: https://github.com/jgentes/soundcloud-shortcuts/issues
 - Mature content: No. Does the extension collect personal information: No.
-- Notes for certification: "Keyboard shortcuts and a now-playing panel for soundcloud.com. To test: open https://soundcloud.com, play any public track, press Alt+Shift+P from another tab, then click the toolbar icon. No account required. Source: github.com/ForgedApps/soundcloud-shortcuts"
+- Notes for certification: "Keyboard shortcuts and a now-playing panel for soundcloud.com. To test: open https://soundcloud.com, play any public track, press Alt+Shift+P from another tab, then click the toolbar icon. No account required. Source: github.com/jgentes/soundcloud-shortcuts"
 
 ## Submission checklist
 
-1. Accounts (one-time, must be done by the ForgedApps owner):
-   - Chrome Web Store developer account: https://chrome.google.com/webstore/devconsole ($5, needs a Google account with 2-step verification; set publisher name "ForgedApps", verify the contact email).
+1. Accounts (one-time, one-time, personal jgentes account):
+   - Chrome Web Store developer account: https://chrome.google.com/webstore/devconsole ($5, needs a Google account with 2-step verification; set a publisher name (e.g. "jgentes"), verify the contact email).
    - Microsoft Partner Center, Edge Add-ons program: https://partner.microsoft.com/dashboard/microsoftedge (free).
 2. Download the zips from the GitHub release for the tag being published.
 3. Chrome: New item → upload the chrome zip → fill Store listing (text, icon, screenshots, promo tile), Privacy practices (above), Distribution: public, all regions → Submit for review. Review usually takes 1–3 days.

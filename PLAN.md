@@ -1,6 +1,6 @@
 # Shortcuts for SoundCloud — Implementation Plan
 
-Publisher: ForgedApps LLC · Repo: `ForgedApps/soundcloud-shortcuts` (GitHub) · Targets: Chrome Web Store + Microsoft Edge Add-ons
+Publisher: jgentes · Repo: `jgentes/soundcloud-shortcuts` (GitHub) · Targets: Chrome Web Store + Microsoft Edge Add-ons
 
 ## 1. Background and what we learned
 
@@ -75,13 +75,13 @@ Key decisions:
 
 Naming and branding
 - Name: "Shortcuts for SoundCloud" (or "Now Playing for SoundCloud" once Phase B lands). Both stores' policies forbid names that imply affiliation; "X for SoundCloud" is the accepted pattern, "SoundCloud X" is the risky one the original used.
-- Icon: original artwork (cloud + waveform + key motif in ForgedApps colors). Do not use SoundCloud's logo; that is a trademark rejection risk and SoundCloud's brand guidelines prohibit it.
+- Icon: original artwork (cloud + waveform + key motif in SoundCloud-adjacent orange). Do not use SoundCloud's logo; that is a trademark rejection risk and SoundCloud's brand guidelines prohibit it.
 - Description states clearly it is an independent project not affiliated with SoundCloud.
 
 Policy requirements
 - Single-purpose statement: "Keyboard shortcuts and a now-playing panel for soundcloud.com."
 - Per-permission justifications (scripting, storage, notifications, host permission) written in `docs/store-listing.md` and pasted into both dashboards.
-- Privacy policy page hosted in the public `ForgedApps/docs` repo (GitHub Pages). Content: no data collected, no data leaves the browser.
+- Privacy policy as PRIVACY.md in the public repo (linked from both store listings). Content: no data collected, no data leaves the browser.
 - Minimum permissions: no `tabs`, no `<all_urls>`, no `activeTab` needed.
 - Edge: submit the same zip via Partner Center; Edge needs its own 300x300 logo and screenshots at its sizes.
 
@@ -89,17 +89,17 @@ Assets
 - Icons 16/32/48/128 plus 300x300 for Edge; 1280x800 screenshots (shortcut page, notification, popup); 440x280 small promo tile for Chrome.
 
 Accounts (user action)
-- Chrome Web Store developer account for ForgedApps ($5 one-time, needs a Google account + 2FA, verified publisher email).
+- Chrome Web Store developer account for jgentes ($5 one-time, needs a Google account + 2FA, verified publisher email).
 - Microsoft Partner Center developer account (free) under the LLC.
 
 ## 5. Delivery plan
 
 | Step | Work | Done when |
 |---|---|---|
-| 0 ✅ | Create `ForgedApps/soundcloud-shortcuts` (MIT), WXT + TypeScript scaffold, ESLint/Prettier, vitest, GitHub Actions build on PR, release workflow that zips Chrome and Edge builds on tag | CI green on an empty extension |
+| 0 ✅ | Create `jgentes/soundcloud-shortcuts` (MIT), WXT + TypeScript scaffold, ESLint/Prettier, vitest, GitHub Actions build on PR, release workflow that zips Chrome and Edge builds on tag | CI green on an empty extension |
 | 1 ✅ | Phase A: manifest commands, service worker, content script, player adapter with 4 original commands + the extended set, tab-targeting logic, options page v1 | Load unpacked in Chrome and Edge, every command works on soundcloud.com, works while another tab is focused |
 | 2 | Playwright test that loads the built extension against soundcloud.com (unauthenticated play works for public tracks) and asserts play/pause toggles; selector smoke test runs nightly in CI to catch SoundCloud UI changes | Tests pass locally and in CI |
-| 3 | Store listing: icons, screenshots, privacy policy on ForgedApps docs site, listing copy, permission justifications. Submit v1.0 to both stores | Both listings in review |
+| 3 | Store listing: icons, screenshots, privacy policy (PRIVACY.md in the repo), listing copy, permission justifications. Submit v1.0 to both stores | Both listings in review |
 | 4 ✅ | Phase B part 1: now-playing state pipeline (content script observer → worker → storage), badge, new-track notification with Next/Like buttons, settings | Notification appears on track change in both browsers |
 | 5 ✅ | Phase B part 2: popup with artwork/metadata/controls, waveform fetch + cache + canvas render, click/drag seek, hover time, live position updates, SoundCloud-like styling with dark/light | Popup matches the site's mini-player look; seeking lands within ~0.5 s of the clicked position |
 | 6 | Submit v1.1 (or 2.0) with the popup; update screenshots | Approved on both stores |
@@ -117,6 +117,6 @@ Rough effort: steps 0–1 are a day; 2–3 a day plus store review wait (Chrome 
 
 ## 7. Open decisions for you
 
-1. Repo name `ForgedApps/soundcloud-shortcuts` and product name "Shortcuts for SoundCloud": OK?
+1. Repo name `jgentes/soundcloud-shortcuts` and product name "Shortcuts for SoundCloud": OK?
 2. Public repo under MIT: OK? (Store reviewers like being able to see the source, and it helps trust for a utility extension.)
 3. Go ahead with steps 0–1 now?

@@ -2,7 +2,7 @@
 
 Keyboard shortcuts for [soundcloud.com](https://soundcloud.com) that work from any tab, built as a Manifest V3 extension for Chrome and Microsoft Edge.
 
-An independent project by [ForgedApps](https://github.com/ForgedApps). Not affiliated with or endorsed by SoundCloud.
+An independent project by [jgentes](https://github.com/jgentes). Not affiliated with or endorsed by SoundCloud.
 
 ## Shortcuts
 
@@ -54,4 +54,4 @@ See [PLAN.md](PLAN.md).
 
 ## License
 
-MIT © ForgedApps LLC
+MIT © jgentes

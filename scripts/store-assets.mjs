@@ -117,7 +117,7 @@ const shell = (body, extra = "") => `<!doctype html><html><head><meta charset="u
   .card{position:absolute;border-radius:14px;box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.08);overflow:hidden;background:#1c1c1c}
   ${extra}
 </style></head><body><div class="wrap">${body}
-<div class="brand"><img src="/icon/128.png">Shortcuts for SoundCloud · by ForgedApps · not affiliated with SoundCloud</div>
+<div class="brand"><img src="/icon/128.png">Shortcuts for SoundCloud · by jgentes · not affiliated with SoundCloud</div>
 </div></body></html>`;
 
 const kbd = (k) => `<kbd>${k}</kbd>`;
