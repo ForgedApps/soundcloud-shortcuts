@@ -56,7 +56,42 @@ function writeForm(form: HTMLFormElement, settings: Settings): void {
   }
 }
 
+const isWindows = /Windows/.test(navigator.userAgent);
+
+async function wireNotificationTest(): Promise<void> {
+  const button = document.querySelector<HTMLButtonElement>("#test-notification");
+  const status = document.querySelector<HTMLElement>("#notification-status");
+  if (!button || !status) return;
+
+  const showLevel = async () => {
+    const level = await new Promise<string>((resolve) =>
+      chrome.notifications.getPermissionLevel((l) => resolve(String(l))),
+    );
+    status.textContent =
+      level === "granted"
+        ? ""
+        : `Notifications are blocked for this browser (permission: ${level}).` +
+          (isWindows ? " Check Windows Settings → System → Notifications and Focus assist." : "");
+  };
+  await showLevel();
+
+  button.addEventListener("click", async () => {
+    status.textContent = "Sending…";
+    const result = (await chrome.runtime
+      .sendMessage({ type: "sc-shortcuts/test-notification" })
+      .catch((e: unknown) => ({ ok: false, detail: String(e) }))) as {
+      ok: boolean;
+      detail?: string;
+    };
+    status.textContent = result.ok
+      ? "Sent. If nothing appeared, the browser or OS is hiding notifications" +
+        (isWindows ? " (Windows Settings → System → Notifications, and Focus assist)." : ".")
+      : `Could not show a notification: ${result.detail ?? "unknown error"}`;
+  });
+}
+
 async function init(): Promise<void> {
+  void wireNotificationTest();
   document.querySelector("#open-shortcuts")?.addEventListener("click", () => {
     void chrome.tabs.create({ url: SHORTCUTS_URL });
   });

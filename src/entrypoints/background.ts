@@ -33,6 +33,11 @@ export default defineBackground(() => {
       case "sc-shortcuts/waveform":
         if (sender.tab?.id !== undefined) void onWaveform(sender.tab.id, message.waveform);
         return;
+      case "sc-shortcuts/test-notification":
+        void testNotification()
+          .then(sendResponse)
+          .catch((error) => sendResponse({ ok: false, detail: String(error) }));
+        return true;
       case "sc-shortcuts/invoke":
         void ("command" in message ? handleCommand(message.command) : seekTo(message.seekTo))
           .then(() => sendResponse({ ok: true }))
@@ -196,26 +201,61 @@ async function setStateBadge(state: NowPlaying | null): Promise<void> {
   await chrome.action.setTitle({ title: `${state.title} — ${state.artist}` });
 }
 
-async function notifyTrack(tabId: number, state: NowPlaying, settings: Settings): Promise<void> {
-  if (settings.notifyOnlyWhenHidden && (await tabIsBeingViewed(tabId))) return;
-  await new Promise<void>((resolve) => {
-    chrome.notifications.create(
-      NOTIFICATION_ID,
-      {
-        type: "basic",
-        iconUrl: state.artworkData ?? chrome.runtime.getURL("icon/128.png"),
-        title: state.title,
-        message: state.artist,
-        contextMessage: "Now playing on SoundCloud",
-        buttons: [{ title: "Next" }, { title: state.liked ? "Unlike" : "Like" }],
-        silent: true,
-      },
-      () => {
-        void chrome.runtime.lastError; // e.g. notifications disabled at OS level
-        resolve();
-      },
-    );
+async function notifyTrack(
+  tabId: number,
+  state: NowPlaying,
+  settings: Settings,
+): Promise<CommandResult> {
+  if (settings.notifyOnlyWhenHidden && (await tabIsBeingViewed(tabId))) {
+    return { ok: true, detail: "skipped: SoundCloud tab is being viewed" };
+  }
+  const result = await createNotification({
+    type: "basic",
+    iconUrl: state.artworkData ?? chrome.runtime.getURL("icon/128.png"),
+    title: state.title,
+    message: state.artist,
+    contextMessage: "Now playing on SoundCloud",
+    buttons: [{ title: "Next" }, { title: state.liked ? "Unlike" : "Like" }],
+    silent: true,
   });
+  if (!result.ok) console.warn("[sc-shortcuts] notification failed:", result.detail);
+  return result;
+}
+
+/** Create (replacing any previous) and report errors instead of swallowing them. */
+function createNotification(
+  options: chrome.notifications.NotificationCreateOptions,
+): Promise<CommandResult> {
+  return new Promise((resolve) => {
+    chrome.notifications.clear(NOTIFICATION_ID, () => {
+      void chrome.runtime.lastError;
+      chrome.notifications.create(NOTIFICATION_ID, options, (id) => {
+        const error = chrome.runtime.lastError?.message;
+        if (error) resolve({ ok: false, detail: error });
+        else if (!id) resolve({ ok: false, detail: "browser returned no notification id" });
+        else resolve({ ok: true });
+      });
+    });
+  });
+}
+
+/** Used by the options page to check that notifications can appear at all. */
+async function testNotification(): Promise<CommandResult> {
+  const level = await new Promise<string>((resolve) =>
+    chrome.notifications.getPermissionLevel((l) => resolve(String(l))),
+  );
+  if (level !== "granted") {
+    return { ok: false, detail: `browser reports notification permission "${level}"` };
+  }
+  const result = await createNotification({
+    type: "basic",
+    iconUrl: chrome.runtime.getURL("icon/128.png"),
+    title: "Test track",
+    message: "Shortcuts for SoundCloud",
+    contextMessage: "If you can see this, track notifications will work",
+    buttons: [{ title: "Next" }, { title: "Like" }],
+  });
+  return result.ok ? { ok: true, detail: "notification created" } : result;
 }
 
 async function updateNotificationIcon(state: NowPlaying): Promise<void> {

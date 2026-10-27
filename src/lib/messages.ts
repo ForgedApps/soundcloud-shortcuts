@@ -63,7 +63,13 @@ export type InvokeMessage =
   | { type: "sc-shortcuts/invoke"; command: Command }
   | { type: "sc-shortcuts/invoke"; seekTo: number };
 
+/** Options page → worker: show a sample notification and report what happened. */
+export interface TestNotificationMessage {
+  type: "sc-shortcuts/test-notification";
+}
+
 export type Message =
+  | TestNotificationMessage
   | CommandMessage
   | SeekToMessage
   | PingMessage

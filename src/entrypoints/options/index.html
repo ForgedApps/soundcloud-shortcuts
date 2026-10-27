@@ -74,7 +74,11 @@
             <input name="showStateBadge" type="checkbox" />
             <span>Show play / pause state on the toolbar icon</span>
           </label>
-          <p class="muted">Click the toolbar icon for the now-playing panel with a seekable waveform.</p>
+          <p class="muted">
+            Click the toolbar icon for the now-playing panel with a seekable waveform.
+            <button id="test-notification" type="button">Send test notification</button>
+          </p>
+          <p id="notification-status" class="muted" role="status"></p>
           <p id="status" class="muted" role="status"></p>
         </form>
       </section>
