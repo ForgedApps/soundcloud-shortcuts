@@ -232,7 +232,8 @@ const shots = [
   ["scene-notify", "screenshot-3-notification.png", 1280, 800],
   ["scene-options", "screenshot-4-options.png", 1280, 800],
   ["promo-tile", "promo-tile-440x280.png", 440, 280],
-  ["marquee", "marquee-1400x560.jpg", 1400, 560],
+  ["marquee", "marquee-1400x560.jpg", 1400, 560], // Chrome accepts JPEG or PNG
+  ["marquee", "marquee-1400x560.png", 1400, 560], // Edge accepts PNG only
 ];
 for (const [scene, file, width, height] of shots) {
   const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 1, colorScheme: "dark" });

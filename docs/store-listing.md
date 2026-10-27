@@ -11,7 +11,7 @@ Tagging `vX.Y.Z` (matching `package.json`) builds and attaches both zips to a Gi
 
 Or locally: `pnpm zip && pnpm zip:edge` (output in `.output/`).
 
-## Assets (in `docs/store-assets/`, regenerate with `node scripts/store-assets.mjs`)
+## Assets (in `docs/store-assets/`, regenerate with `pnpm assets`)
 
 | File | Use |
 |---|---|
@@ -19,7 +19,7 @@ Or locally: `pnpm zip && pnpm zip:edge` (output in `.output/`).
 | `public/icon/128.png` | Chrome store icon (128×128) |
 | `screenshot-1-shortcuts.png` … `screenshot-4-options.png` | Screenshots, 1280×800, both stores |
 | `promo-tile-440x280.png` | Chrome small promo tile |
-| `marquee-1400x560.jpg` | Chrome marquee promo tile |
+| `marquee-1400x560.jpg` / `.png` | Marquee promo tile (JPEG for Chrome, PNG for Edge) |
 
 Screenshots use fictional track names and generated artwork, no third-party material.
 

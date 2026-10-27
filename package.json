@@ -18,6 +18,7 @@
     "build:edge": "wxt build -b edge",
     "zip": "wxt zip",
     "zip:edge": "wxt zip -b edge",
+    "assets": "wxt build && node scripts/store-assets.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "postinstall": "wxt prepare"
