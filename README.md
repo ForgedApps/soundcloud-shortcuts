@@ -4,6 +4,12 @@ Keyboard shortcuts for [soundcloud.com](https://soundcloud.com) that work from a
 
 An independent project by [James Gentes](https://github.com/jgentes). Not affiliated with or endorsed by SoundCloud.
 
+## Install
+
+- **Microsoft Edge:** [Shortcuts for SoundCloud on Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/shortcuts-for-soundcloud/pfjipggmdmbfoekoddgefhpfppmchdoa)
+- **Chrome:** pending review on the Chrome Web Store
+- **Manual:** download a zip from the [latest release](https://github.com/jgentes/soundcloud-shortcuts/releases/latest), unzip it, and load it unpacked from `chrome://extensions` or `edge://extensions`
+
 ## Shortcuts
 
 | Action | Default |

@@ -89,7 +89,7 @@ Control and display the soundcloud.com player from the browser toolbar and keybo
 2. Download the zips from the GitHub release for the tag being published.
 3. Chrome: New item → upload the chrome zip → fill Store listing (text, icon, screenshots, promo tile), Privacy practices (above), Distribution: public, all regions → Submit for review. Review usually takes 1–3 days.
 4. Edge: Create new extension → upload the edge zip → Properties (above) → Store listings (English: text, 300×300 logo, screenshots) → Submit. Review up to 7 business days.
-5. After approval, add the store links to `README.md` and the repo description.
+5. After approval, add the store links to `README.md` and the repo description. Edge: https://microsoftedge.microsoft.com/addons/detail/shortcuts-for-soundcloud/pfjipggmdmbfoekoddgefhpfppmchdoa
 
 ## Updates
 
