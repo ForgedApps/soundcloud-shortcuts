@@ -1,18 +1,29 @@
 name: Release
 
-# Tag a commit `vX.Y.Z` (matching package.json) to build store-ready zips
-# and attach them to a GitHub release. Store upload stays a manual step
-# until the Chrome Web Store and Partner Center accounts exist.
+# Tag a commit `vX.Y.Z` (matching package.json) to build store-ready zips,
+# attach them to a GitHub release, and submit them to both stores.
+#
+# Store publishing runs only when the matching secrets exist (see
+# docs/store-listing.md → "Automated publishing"). Without them the jobs are
+# skipped and the zips can be uploaded by hand.
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Submit the current ref to the stores (no GitHub release)"
+        type: boolean
+        default: true
 
 permissions:
   contents: write
 
 jobs:
-  release:
+  build:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -25,7 +36,136 @@ jobs:
       - run: pnpm test
       - run: pnpm zip
       - run: pnpm zip:edge
+      - id: meta
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+      - name: Check tag matches package.json
+        if: github.event_name == 'push'
+        run: |
+          [ "${GITHUB_REF_NAME}" = "v${{ steps.meta.outputs.version }}" ] || {
+            echo "Tag ${GITHUB_REF_NAME} does not match package.json version ${{ steps.meta.outputs.version }}"; exit 1; }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: store-zips
+          path: .output/*.zip
+          if-no-files-found: error
+
+  release:
+    if: github.event_name == 'push'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: store-zips
+          path: dist
       - uses: softprops/action-gh-release@v2
         with:
-          files: .output/*.zip
+          files: dist/*.zip
           generate_release_notes: true
+
+  publish-chrome:
+    needs: build
+    if: github.event_name == 'push' || inputs.publish
+    runs-on: ubuntu-latest
+    env:
+      EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+      CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+      CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+      REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+    steps:
+      - id: check
+        run: |
+          if [ -n "$EXTENSION_ID" ] && [ -n "$CLIENT_ID" ] && [ -n "$CLIENT_SECRET" ] && [ -n "$REFRESH_TOKEN" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Chrome Web Store secrets not set; skipping. See docs/store-listing.md."
+          fi
+      - if: steps.check.outputs.configured == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: store-zips
+          path: dist
+      - if: steps.check.outputs.configured == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Upload and publish to the Chrome Web Store
+        if: steps.check.outputs.configured == 'true'
+        # Uploads the package and requests publication; Google's review still
+        # applies and the new version goes live when it passes.
+        run: npx --yes chrome-webstore-upload-cli@3 --source "dist/soundcloud-shortcuts-${{ needs.build.outputs.version }}-chrome.zip"
+
+  publish-edge:
+    needs: build
+    if: github.event_name == 'push' || inputs.publish
+    runs-on: ubuntu-latest
+    env:
+      PRODUCT_ID: ${{ secrets.EDGE_PRODUCT_ID }}
+      CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
+      API_KEY: ${{ secrets.EDGE_API_KEY }}
+      API: https://api.addons.microsoftedge.microsoft.com
+    steps:
+      - id: check
+        run: |
+          if [ -n "$PRODUCT_ID" ] && [ -n "$CLIENT_ID" ] && [ -n "$API_KEY" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Edge Add-ons secrets not set; skipping. See docs/store-listing.md."
+          fi
+      - if: steps.check.outputs.configured == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: store-zips
+          path: dist
+      - name: Upload package to the draft submission
+        if: steps.check.outputs.configured == 'true'
+        id: upload
+        run: |
+          set -euo pipefail
+          zip="dist/soundcloud-shortcuts-${{ needs.build.outputs.version }}-edge.zip"
+          headers=$(mktemp)
+          code=$(curl -sS -o /dev/null -D "$headers" -w '%{http_code}' \
+            -H "Authorization: ApiKey $API_KEY" -H "X-ClientID: $CLIENT_ID" \
+            -H "Content-Type: application/zip" -X POST --data-binary "@$zip" \
+            "$API/v1/products/$PRODUCT_ID/submissions/draft/package")
+          [ "$code" = "202" ] || { echo "Upload returned HTTP $code"; cat "$headers"; exit 1; }
+          op=$(grep -i '^Location:' "$headers" | tr -d '\r' | awk '{print $2}' | sed 's|.*/||')
+          echo "Upload operation $op"
+          for i in $(seq 1 40); do
+            sleep 10
+            body=$(curl -sS -H "Authorization: ApiKey $API_KEY" -H "X-ClientID: $CLIENT_ID" \
+              "$API/v1/products/$PRODUCT_ID/submissions/draft/package/operations/$op")
+            status=$(echo "$body" | node -pe 'JSON.parse(require("fs").readFileSync(0,"utf8")).status')
+            echo "  $status"
+            case "$status" in
+              Succeeded) exit 0 ;;
+              Failed) echo "$body"; exit 1 ;;
+            esac
+          done
+          echo "Timed out waiting for the package upload"; exit 1
+      - name: Publish the submission
+        if: steps.check.outputs.configured == 'true'
+        run: |
+          set -euo pipefail
+          notes="Automated release v${{ needs.build.outputs.version }} from GitHub Actions. Source: https://github.com/${{ github.repository }}. To test: open https://soundcloud.com, play any public track, press Alt+Shift+P from another tab, then click the toolbar icon."
+          headers=$(mktemp)
+          code=$(curl -sS -o /dev/null -D "$headers" -w '%{http_code}' \
+            -H "Authorization: ApiKey $API_KEY" -H "X-ClientID: $CLIENT_ID" \
+            -H "Content-Type: application/json" -X POST \
+            -d "$(node -pe 'JSON.stringify({ notes: process.argv[1] })' "$notes")" \
+            "$API/v1/products/$PRODUCT_ID/submissions")
+          [ "$code" = "202" ] || { echo "Publish returned HTTP $code"; cat "$headers"; exit 1; }
+          op=$(grep -i '^Location:' "$headers" | tr -d '\r' | awk '{print $2}' | sed 's|.*/||')
+          echo "Publish operation $op"
+          for i in $(seq 1 30); do
+            sleep 10
+            body=$(curl -sS -H "Authorization: ApiKey $API_KEY" -H "X-ClientID: $CLIENT_ID" \
+              "$API/v1/products/$PRODUCT_ID/submissions/operations/$op")
+            status=$(echo "$body" | node -pe 'JSON.parse(require("fs").readFileSync(0,"utf8")).status')
+            echo "  $status"
+            case "$status" in
+              Succeeded) echo "Submitted for certification."; exit 0 ;;
+              Failed) echo "$body"; exit 1 ;;
+            esac
+          done
+          echo "Timed out waiting for the publish operation"; exit 1

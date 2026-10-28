@@ -93,4 +93,29 @@ Control and display the soundcloud.com player from the browser toolbar and keybo
 
 ## Updates
 
-Bump `version` in `package.json`, commit, tag `vX.Y.Z`, push the tag, then upload the new zips to both dashboards. Both stores accept the same listing text; only the package changes.
+Bump `version` in `package.json`, commit, tag `vX.Y.Z`, and push the tag. The release workflow builds the zips, attaches them to a GitHub release, and, once the secrets below exist, submits them to both stores. Both stores still run their normal review before the new version goes live. Listing text and images are not updated by the API; change those in the dashboards.
+
+## Automated publishing (one-time setup)
+
+Add these as repository secrets at https://github.com/jgentes/soundcloud-shortcuts/settings/secrets/actions. Each store's job is skipped with a notice until all of its secrets are present, so you can set up one store at a time.
+
+### Chrome Web Store
+
+Uses the official Chrome Web Store API through `chrome-webstore-upload-cli`.
+
+1. `CHROME_EXTENSION_ID`: the 32-letter ID from the item's dashboard URL or store page.
+2. `CHROME_CLIENT_ID`, `CHROME_CLIENT_SECRET`, `CHROME_REFRESH_TOKEN`: follow https://github.com/fregante/chrome-webstore-upload-keys. In short: create a Google Cloud project, configure the OAuth consent screen (Internal), create a Desktop OAuth client, enable the "Chrome Web Store API", then run `npx chrome-webstore-upload-keys` locally, which walks you through sign-in and prints the refresh token. Use the same Google account as the developer dashboard.
+
+### Microsoft Edge Add-ons
+
+Uses the Edge Add-ons REST API v1.1 (API key).
+
+1. `EDGE_PRODUCT_ID`: the GUID shown on the extension's overview page in Partner Center (also in its URL).
+2. `EDGE_CLIENT_ID` and `EDGE_API_KEY`: in Partner Center go to Microsoft Edge → Publish API, click Enable for the new experience if offered, then Create API credentials. Copy the Client ID and the API key (keys expire; the page shows the date, and a new key just needs the secret updated).
+
+The API can only update an extension that was first published through Partner Center, which is already done.
+
+### Running it
+
+- Automatic: push a `vX.Y.Z` tag.
+- Manual: Actions → Release → Run workflow on `main` to resubmit the current source without creating a GitHub release (handy after a rejection that only needs listing changes, or to retry a failed upload).
