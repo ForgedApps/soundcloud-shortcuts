@@ -20,7 +20,7 @@ jobs:
       - run: pnpm test
       - run: pnpm build
       - run: pnpm build:edge
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: unpacked-builds
           path: .output/

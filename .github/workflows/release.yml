@@ -43,7 +43,7 @@ jobs:
         run: |
           [ "${GITHUB_REF_NAME}" = "v${{ steps.meta.outputs.version }}" ] || {
             echo "Tag ${GITHUB_REF_NAME} does not match package.json version ${{ steps.meta.outputs.version }}"; exit 1; }
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: store-zips
           path: .output/*.zip
