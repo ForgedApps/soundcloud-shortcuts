@@ -113,13 +113,29 @@ jobs:
           else
             echo "::notice::Edge Add-ons secrets not set; skipping. See docs/store-listing.md."
           fi
-      - if: steps.check.outputs.configured == 'true'
+      - name: Skip if the store already serves this version
+        # Edge rejects a submission unless the version is higher than the
+        # published one, so a re-run (or a manual test) of a released version
+        # ends here with a notice instead of a failure.
+        if: steps.check.outputs.configured == 'true'
+        id: current
+        run: |
+          live=$(curl -sS "https://microsoftedge.microsoft.com/addons/getproductdetailsbycrxid/$EDGE_CRX_ID" | node -pe 'JSON.parse(require("fs").readFileSync(0,"utf8")).version' || echo unknown)
+          echo "Store serves $live, building ${{ needs.build.outputs.version }}"
+          if [ "$live" = "${{ needs.build.outputs.version }}" ]; then
+            echo "::notice::Edge Add-ons already serves ${{ needs.build.outputs.version }}; nothing to submit."
+          else
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          EDGE_CRX_ID: pfjipggmdmbfoekoddgefhpfppmchdoa
+      - if: steps.current.outputs.proceed == 'true'
         uses: actions/download-artifact@v8
         with:
           name: store-zips
           path: dist
       - name: Upload package to the draft submission
-        if: steps.check.outputs.configured == 'true'
+        if: steps.current.outputs.proceed == 'true'
         id: upload
         run: |
           set -euo pipefail
@@ -145,7 +161,7 @@ jobs:
           done
           echo "Timed out waiting for the package upload"; exit 1
       - name: Publish the submission
-        if: steps.check.outputs.configured == 'true'
+        if: steps.current.outputs.proceed == 'true'
         run: |
           set -euo pipefail
           notes="Automated release v${{ needs.build.outputs.version }} from GitHub Actions. Source: https://github.com/${{ github.repository }}. To test: open https://soundcloud.com, play any public track, press Alt+Shift+P from another tab, then click the toolbar icon."
