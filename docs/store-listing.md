@@ -103,7 +103,7 @@ Add these as repository secrets at https://github.com/jgentes/soundcloud-shortcu
 
 Uses the official Chrome Web Store API through `chrome-webstore-upload-cli`.
 
-1. `CHROME_EXTENSION_ID`: the 32-letter ID from the item's dashboard URL or store page.
+1. `CHROME_EXTENSION_ID`: the 32-letter ID from the item's dashboard URL or store page (`goacpmblhegeekdjdobjmjahmegjcokm`; listing: https://chromewebstore.google.com/detail/shortcuts-for-soundcloud/goacpmblhegeekdjdobjmjahmegjcokm).
 2. `CHROME_CLIENT_ID`, `CHROME_CLIENT_SECRET`, `CHROME_REFRESH_TOKEN`: follow https://github.com/fregante/chrome-webstore-upload-keys. In short: create a Google Cloud project, enable the "Chrome Web Store API", configure the OAuth consent screen as External (Internal needs a Workspace account) and add your own Gmail address as a test user, then create an OAuth client of type **Desktop app** (a Web application client fails with `redirect_uri_mismatch`, because the helper listens on a localhost port). Run `npx chrome-webstore-upload-keys` locally, which walks you through sign-in and prints the refresh token. Use the same Google account as the developer dashboard. While the consent screen is in Testing status, refresh tokens expire after 7 days, so once the token works, click "Publish app" on the consent screen to move it to Production; no Google verification is needed because only your own account uses it.
 
 ### Microsoft Edge Add-ons

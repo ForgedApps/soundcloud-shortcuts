@@ -1,5 +1,6 @@
 # Shortcuts for SoundCloud
 
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/v/goacpmblhegeekdjdobjmjahmegjcokm?label=Chrome%20Web%20Store&logo=googlechrome&logoColor=white&color=4285f4)](https://chromewebstore.google.com/detail/shortcuts-for-soundcloud/goacpmblhegeekdjdobjmjahmegjcokm)
 [![Edge Add-ons](https://img.shields.io/badge/dynamic/json?label=Edge%20Add-ons&prefix=v&query=%24.version&url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Fpfjipggmdmbfoekoddgefhpfppmchdoa&logo=microsoftedge&color=0078d4)](https://microsoftedge.microsoft.com/addons/detail/shortcuts-for-soundcloud/pfjipggmdmbfoekoddgefhpfppmchdoa)
 [![Edge users](https://img.shields.io/badge/dynamic/json?label=users&query=%24.activeInstallCount&url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Fpfjipggmdmbfoekoddgefhpfppmchdoa&color=0078d4)](https://microsoftedge.microsoft.com/addons/detail/shortcuts-for-soundcloud/pfjipggmdmbfoekoddgefhpfppmchdoa)
 [![CI](https://github.com/jgentes/soundcloud-shortcuts/actions/workflows/ci.yml/badge.svg)](https://github.com/jgentes/soundcloud-shortcuts/actions/workflows/ci.yml)
@@ -11,8 +12,8 @@ An independent project by [James Gentes](https://github.com/jgentes). Not affili
 
 ## Install
 
+- **Chrome:** [Shortcuts for SoundCloud on the Chrome Web Store](https://chromewebstore.google.com/detail/shortcuts-for-soundcloud/goacpmblhegeekdjdobjmjahmegjcokm)
 - **Microsoft Edge:** [Shortcuts for SoundCloud on Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/shortcuts-for-soundcloud/pfjipggmdmbfoekoddgefhpfppmchdoa)
-- **Chrome:** pending review on the Chrome Web Store
 - **Manual:** download a zip from the [latest release](https://github.com/jgentes/soundcloud-shortcuts/releases/latest), unzip it, and load it unpacked from `chrome://extensions` or `edge://extensions`
 
 ## Shortcuts
