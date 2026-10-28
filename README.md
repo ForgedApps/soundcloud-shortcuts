@@ -1,5 +1,10 @@
 # Shortcuts for SoundCloud
 
+[![Edge Add-ons](https://img.shields.io/badge/dynamic/json?label=Edge%20Add-ons&prefix=v&query=%24.version&url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Fpfjipggmdmbfoekoddgefhpfppmchdoa&logo=microsoftedge&color=0078d4)](https://microsoftedge.microsoft.com/addons/detail/shortcuts-for-soundcloud/pfjipggmdmbfoekoddgefhpfppmchdoa)
+[![Edge users](https://img.shields.io/badge/dynamic/json?label=users&query=%24.activeInstallCount&url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Fpfjipggmdmbfoekoddgefhpfppmchdoa&color=0078d4)](https://microsoftedge.microsoft.com/addons/detail/shortcuts-for-soundcloud/pfjipggmdmbfoekoddgefhpfppmchdoa)
+[![CI](https://github.com/jgentes/soundcloud-shortcuts/actions/workflows/ci.yml/badge.svg)](https://github.com/jgentes/soundcloud-shortcuts/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
 Keyboard shortcuts for [soundcloud.com](https://soundcloud.com) that work from any tab, built as a Manifest V3 extension for Chrome and Microsoft Edge.
 
 An independent project by [James Gentes](https://github.com/jgentes). Not affiliated with or endorsed by SoundCloud.
