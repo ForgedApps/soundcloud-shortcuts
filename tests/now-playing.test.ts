@@ -1,6 +1,12 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it } from "vitest";
-import { artworkAtSize, readNowPlaying, seekToFraction } from "../src/lib/player-adapter";
+import {
+  artworkAtSize,
+  readNowPlaying,
+  resetRepostMemory,
+  runCommand,
+  seekToFraction,
+} from "../src/lib/player-adapter";
 
 function mountPlayer(opts: { track?: boolean; liked?: boolean; aria?: boolean } = {}): void {
   const { track = true, liked = false, aria = true } = opts;
@@ -58,6 +64,42 @@ describe("readNowPlaying", () => {
   it("detects liked state from the selected class", () => {
     mountPlayer({ liked: true });
     expect(readNowPlaying()?.liked).toBe(true);
+  });
+
+  describe("reposted state without a player-bar button", () => {
+    beforeEach(() => resetRepostMemory());
+    const mountBarWithoutRepost = (page?: { reposted: boolean }) => {
+      mountPlayer();
+      document.querySelector(".playbackSoundBadge__repost")?.remove();
+      if (page) {
+        document.body.insertAdjacentHTML(
+          "beforeend",
+          `<div class="listenEngagement"><button class="sc-button-repost ${page.reposted ? "sc-button-selected" : ""}" title="${page.reposted ? "Unpost" : "Repost"}"></button></div>`,
+        );
+      }
+    };
+
+    it("reads the track page's button when that page is open", () => {
+      history.replaceState(null, "", "/some-artist/great-track");
+      mountBarWithoutRepost({ reposted: true });
+      expect(readNowPlaying()?.reposted).toBe(true);
+    });
+
+    it("ignores a repost button on another track's page", () => {
+      history.replaceState(null, "", "/other/track");
+      mountBarWithoutRepost({ reposted: true });
+      expect(readNowPlaying()?.reposted).toBe(false);
+    });
+
+    it("remembers its own hotkey toggles per track", () => {
+      history.replaceState(null, "", "/other/track");
+      mountBarWithoutRepost();
+      expect(readNowPlaying()?.reposted).toBe(false);
+      expect(runCommand("repost", 10).ok).toBe(true);
+      expect(readNowPlaying()?.reposted).toBe(true);
+      expect(runCommand("repost", 10).ok).toBe(true);
+      expect(readNowPlaying()?.reposted).toBe(false);
+    });
   });
 
   it("falls back to the visible time labels when aria values are missing", () => {

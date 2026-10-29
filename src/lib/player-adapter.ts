@@ -15,6 +15,9 @@ export const SELECTORS = {
   previous: [".skipControl__previous", ".playControls__prev"],
   like: [".playbackSoundBadge__like", ".playbackSoundBadge .sc-button-like"],
   repost: [".playbackSoundBadge__repost", ".playbackSoundBadge .sc-button-repost"],
+  // The player bar has no repost button any more; a track's own page still
+  // shows one, which is the only place its reposted state can be read.
+  pageRepost: [".listenEngagement .sc-button-repost", ".soundActions .sc-button-repost"],
   mute: [".volume__button", ".volume .volume__button"],
   volume: [".volume"],
   shuffle: [".shuffleControl", ".playControls__shuffle"],
@@ -164,8 +167,43 @@ function selected(el: HTMLElement | null): boolean {
     !!el &&
     (el.classList.contains("sc-button-selected") ||
       el.getAttribute("aria-pressed") === "true" ||
-      /unlike|un-?repost|remove/i.test(el.getAttribute("title") ?? ""))
+      /unlike|unpost|un-?repost|remove/i.test(el.getAttribute("title") ?? ""))
   );
+}
+
+/**
+ * Reposted state per track. SoundCloud's player bar no longer exposes it, so
+ * it is read from the track's page when that page is open, and otherwise
+ * remembered from our own repost toggles (which go through the "r" hotkey).
+ * A track reposted before the extension saw it therefore starts as "not
+ * reposted" until its page is visited.
+ */
+const repostMemory = new Map<string, boolean>();
+
+/** Test hook. */
+export function resetRepostMemory(): void {
+  repostMemory.clear();
+}
+
+function pageRepostButton(trackKey: string): HTMLElement | null {
+  return location.pathname === trackKey ? find("pageRepost") : null;
+}
+
+export function readReposted(trackKey: string): boolean {
+  const onBar = find("repost");
+  if (onBar) return selected(onBar);
+  const onPage = pageRepostButton(trackKey);
+  if (onPage) {
+    const value = selected(onPage);
+    repostMemory.set(trackKey, value);
+    return value;
+  }
+  return repostMemory.get(trackKey) ?? false;
+}
+
+/** Called after a repost toggle that the page handled via its hotkey. */
+function noteRepostToggled(trackKey: string): void {
+  repostMemory.set(trackKey, !(repostMemory.get(trackKey) ?? false));
 }
 
 function repeatMode(el: HTMLElement | null): RepeatMode {
@@ -216,7 +254,7 @@ export function readNowPlaying(): NowPlaying | null {
     position: timeline?.position ?? 0,
     duration: timeline?.duration ?? 0,
     liked: selected(find("like")),
-    reposted: selected(find("repost")),
+    reposted: readReposted(trackKey),
     shuffle: !!find("shuffle")?.classList.contains("m-shuffling"),
     repeat: repeatMode(find("repeat")),
     volume: Number.isFinite(level) ? level : null,
@@ -230,6 +268,19 @@ export function artworkAtSize(url: string, size: number): string {
   return url.replace(/-(t\d+x\d+|large|small|badge|original|crop)(\.\w+)$/, `-t${size}x${size}$2`);
 }
 
+function repost(): CommandResult {
+  const trackKey = readNowPlaying()?.trackKey;
+  const onPage = trackKey ? pageRepostButton(trackKey) : null;
+  if (onPage) {
+    onPage.click();
+    return { ok: true };
+  }
+  const result = clickThenKey("repost", "repost");
+  // Only a hotkey toggle leaves no element to read back; remember it ourselves.
+  if (result.ok && trackKey && !find("repost")) noteRepostToggled(trackKey);
+  return result;
+}
+
 export function runCommand(command: Command, seekStep: number): CommandResult {
   switch (command) {
     case "play-pause":
@@ -241,7 +292,7 @@ export function runCommand(command: Command, seekStep: number): CommandResult {
     case "like":
       return clickThenKey("like", command);
     case "repost":
-      return clickThenKey("repost", command);
+      return repost();
     case "mute":
       return clickThenKey("mute", command);
     case "shuffle":
